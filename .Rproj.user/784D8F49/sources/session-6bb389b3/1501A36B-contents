@@ -1,0 +1,132 @@
+library(tidyverse)
+library(rvest)
+library(readtext)
+library(flextable)
+library(webdriver)
+library(httr2)
+
+# res <- GET(url)
+# status_code(res)
+
+# install.packages("chromote")
+library(chromote)
+library(xml2)
+
+base_url <- 'https://www.datacentermap.com/united-kingdom'
+
+get_county <- function(url) {
+
+  b <- ChromoteSession$new()
+  b$Page$navigate(url)
+  Sys.sleep(2)
+  doc <- b$DOM$getDocument()
+  html <- b$DOM$getOuterHTML(nodeId = doc$root$nodeId)$outerHTML
+  page <- read_html(html)
+  county <- page%>%
+    html_element("div.ui.centered.cards") %>%
+    html_elements("td")%>%
+    html_element('a')
+  county <- county[!is.na(county)]%>%
+    html_attr("href")
+
+  all_counties <- c()
+  for(i in 1:length(county)){
+    all_counties <- c(all_counties, county[i])
+  }
+
+  return(county)
+}
+
+county <- get_county(base_url)
+
+get_page <- function(url) {
+  b <- ChromoteSession$new()
+  b$Page$navigate(url)
+  Sys.sleep(1)
+  doc <- b$DOM$getDocument()
+  html <- b$DOM$getOuterHTML(nodeId = doc$root$nodeId)$outerHTML
+  page <- read_html(html)
+}
+
+data_centers <- data.frame(
+  "Name" = character(),
+  "Postcode" = character(),
+  "Location" = character(),
+  stringsAsFactors = FALSE
+)
+
+for (coun in county){
+
+  print(paste0("Processing ", coun))
+  url <- file.path("https://www.datacentermap.com", coun)
+
+  repeat {
+    page <- tryCatch(get_page(url), error = function(e) character(0))
+
+    dc <- page%>%
+      html_element("div.computer.only.left.floated.column.mapsidebar")%>%
+      html_elements("div.ui.centered.cards a.ui.card div.description")%>%
+      html_text2() %>%
+      map_chr(~{
+        lines <- str_split(.x, "\n")[[1]] %>% str_trim()
+        lines[3]
+      })
+    name <- page%>%
+      html_element("div.computer.only.left.floated.column.mapsidebar")%>%
+      html_elements("div.ui.centered.cards a.ui.card div.header")%>%
+      html_text2()
+
+    if (length(page) > 0) {
+      print(paste("Found", length(page), "records in", coun))
+      break
+    } else {
+      print(paste("Retrying", coun, "..."))
+    }
+  }
+
+  for (j in seq_along(dc)) {
+    data_centers <- rbind(data_centers, data.frame("Name" = name[j], "Postcode" = dc[j], "Location" = coun))
+    }
+}
+data_centers <- data_centers %>%
+  mutate(Location = str_remove(Location, "^/united-kingdom/"),
+         Location = str_remove(Location, "/$"))
+
+library(ggmap)
+
+register_google(key = "")
+
+data_centers$full_address <- paste(data_centers$Postcode, "United Kingdom")
+coords <- geocode(data_centers$full_address, output = "latlon", source = "google")
+
+data_centers <- cbind(data_centers, coords)
+
+# save data_centers
+# write_csv(final_data, "data/UK_Data_Centers.csv")
+data_centers <- read_csv("data/UK_Data_Centers.csv")
+# This part remove because is in usa
+final_data <- data_centers%>%filter(Postcode != '06351 Griswold')
+
+verify <- final_data%>%
+  group_by(Location)%>%
+  summarise(n=n())%>%
+  arrange(desc(n))
+for(I in verify) {
+  print(I)
+}
+
+
+library(sf)
+library(tmap)
+
+dc_sf <- st_as_sf(final_data, coords = c("lon", "lat"), crs = 4326)
+tmap_mode("view")
+tm_basemap("CartoDB.Positron") +
+  tm_shape(dc_sf) +
+  tm_scale_bar() +
+  tm_compass() +
+  tm_dots(size = 0.5, col = "blue", alpha = 0.7)
+
+
+
+

@@ -1,0 +1,5 @@
+bf_27700 <- st_transform(brownfield_sf, 27700)
+
+bf_27700$area_m2  <- st_area(bf_27700)
+bf_27700$area_km2 <- units::set_units(bf_27700$area_m2, km^2)
+total_km2 <- sum(bf_27700$area_km2, na.rm = TRUE)
