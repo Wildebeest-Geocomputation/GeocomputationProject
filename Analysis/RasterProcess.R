@@ -57,6 +57,11 @@ fuzzy_symmetric <- function(x, a, b, c, d) {
   return(y)
 }
 
+curve(fuzzy_symmetric(x, a=0, b=500, c=2000, d=5000), from=0, to=6000,
+      main="Fuzzy Standardization", xlab="Distance to Power", ylab="Suitability")
+curve(fuzzy_decrease(x, max_dist = 5000), from=0, to=6000,
+      main="Fuzzy Standardization", xlab="Distance to Roads (m)", ylab="Suitability")
+
 # Here we adjust parameters to fit the example scale: 500m to 2000m is the ideal distance
 suitability_roads <- app(dist_roads, fun = function(x) fuzzy_symmetric(x, a=0, b=500, c=2000, d=5000))
 

@@ -19,7 +19,7 @@ valid_rows <- complete.cases(presence_vals)
 presence_clean <- presence_vals[valid_rows, ]
 
 bg_data <- spatSample(presence, size = 1000, method = "random", na.rm = TRUE, values = TRUE)
-bg_data <- as.data.frame(bg_data)
+# bg_data <- as.data.frame(bg_data)
 model_data <- rbind(presence_clean, bg_data)
 
 # The background point set to 0 because in entropy, presence points are 1, 0 represent random distributed points
@@ -28,3 +28,5 @@ pa <- c(rep(1, nrow(presence_clean)), rep(0, nrow(bg_data)))
 me_model <- maxnet(p = pa, data = model_data)
 plot(me_model, type = "logistic")
 
+suitability_map <- predict(presence, me_model, type = "logistic")
+plot(suitability_map, main = "Data Center Suitability")
