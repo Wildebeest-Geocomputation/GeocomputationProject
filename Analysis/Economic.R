@@ -155,7 +155,8 @@ file_list <- list.files(path = data_folder,
 all_data <- file_list %>%
   map(st_read) %>%
   bind_rows()
-write.csv(all_data, file = "./PData/Individual/all_crime_data_2025_09.csv", row.names = FALSE)
+# write.csv(all_data, file = "./PData/Individual/all_crime_data_2025_09.csv", row.names = FALSE)
+all_data <- read_csv("./PData/Individual/all_crime_data_2025_09.csv")
 
 all_data$Longitude <- as.numeric(as.character(all_data$Longitude))
 all_data$Latitude  <- as.numeric(as.character(all_data$Latitude))
@@ -165,9 +166,10 @@ clean_data <- all_data %>%
 crime_data_sf <- st_as_sf(clean_data, coords = c("Longitude", "Latitude"),crs = 4326)
 
 library(leaflet)
+library(tmap)
 tmap_mode("plot")
 crime_data_sf%>%
-  # filter(Crime.type == 'Drugs')%>%
+  filter(Crime.type == 'Drugs')%>%
 tm_shape() +
 tm_basemap(providers$Esri.WorldTopoMap)+
   tm_dots(col = "Crime.type", border.col = NA, alpha = 1, size = 0.1, palette = "Dark2",

@@ -11,7 +11,7 @@ uk_admin_level2 <- gadm(country="GBR", level=2, path=tempdir()) # more detailed 
 
 # Convert polygons to lines to simulate roads or power lines
 power_lines <- as.lines(uk_admin_level1)
-roads <- as.lines(uk_admin_level2)
+roads <- as.lines(uk_admin_level1)
 # To speed up computation, crop to a small area around London
 crop_extent <- ext(-0.5, 0.5, 51.3, 51.7)
 template_raster <- crop(template_raster, crop_extent)
@@ -67,3 +67,19 @@ suitability_roads <- app(dist_roads, fun = function(x) fuzzy_symmetric(x, a=0, b
 
 plot(suitability_roads, main = "Fuzzy Suitability: Major Roads (Symmetric)")
 
+## point data
+all_data <- read_csv("./PData/Individual/all_crime_data_2025_09.csv")
+
+library(terra)
+library(geodata)
+
+points_vect <- vect(all_data, geom=c("Longitude", "Latitude"), crs="EPSG:4326")
+dist_points <- distance(template_raster, points_vect)
+
+suitability_points <- app(dist_points, fun = function(x) fuzzy_decrease(x, max_dist = 5000))
+
+plot(dist_points, main = "Distance to Nearest Point (m)")
+plot(suitability_points, main = "Fuzzy Suitability")
+
+points(points_vect, col="red", pch=19, cex=1.5)
+points(points_vect, col="blue", pch=19, cex=1.5)
