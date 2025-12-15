@@ -1,12 +1,10 @@
 # This is only an example code to preprocess raster data based on network, since it's using the boundaries of England level 2
 # it doesn't represent anything important to the data centre example.
 
-
-if (!require("geodata")) install.packages("geodata")
-if (!require("terra")) install.packages("terra")
+# if (!require("geodata")) install.packages("geodata")
+# if (!require("terra")) install.packages("terra")
 
 library(terra)
-library(geodata)
 source('utils/fuzzy.R')
 source('utils/boundaries.R')
 

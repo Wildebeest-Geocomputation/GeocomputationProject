@@ -1,9 +1,8 @@
 # This example use crime data in england to process raster data.
 
 library(sf)
-library(tidyverse)
 library(terra)
-library(geodata)
+library(tidyverse)
 source('Analysis/fuzzy.R')
 source('Analysis/boundaries.R')
 

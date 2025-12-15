@@ -1,6 +1,5 @@
 library(sf)
 library(maxnet)
-library(tidyverse)
 
 presence <- c(suitability_points, suitability_networks)
 names(presence) <- c("points", "networks")

@@ -1,4 +1,5 @@
-library(tidyverse)
+library(geodata)
+
 uk_level1 <- gadm(country="GBR", level=1, path=tempdir()) # main boundaries
 uk_level2 <- gadm(country="GBR", level=2, path=tempdir()) # more detailed boundaries
 
