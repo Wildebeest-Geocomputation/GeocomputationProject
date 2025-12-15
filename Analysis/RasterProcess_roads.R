@@ -1,64 +1,61 @@
-if (!require("geodata")) install.packages("geodata")
-if (!require("terra")) install.packages("terra")
-
+library(sf)
+library(dplyr)
 library(terra)
 library(geodata)
+library(stringr)
 
-template_raster <- elevation_30s(country="GBR", path=tempdir())
+# Load and preprocess data
+setwd("C:\\Users\\alfat\\Documents\\STA_MSc\\R\\Group Assignment\\Data\\road_networks\\Download_2869127\\open-roads_6194291")
 
-uk_admin_level1 <- gadm(country="GBR", level=1, path=tempdir()) # main boundaries
-uk_admin_level2 <- gadm(country="GBR", level=2, path=tempdir()) # more detailed boundaries
+road_files <- list.files(pattern = "*_RoadLink\\.shp$",
+                         full.names = TRUE,
+                         recursive = FALSE) # Read all RoadLink shapefiles
 
-# Convert polygons to lines to simulate roads or power lines
-power_lines <- as.lines(uk_admin_level1)
-roads <- as.lines(uk_admin_level2)
-# To speed up computation, crop to a small area around London
-crop_extent <- ext(-0.5, 0.5, 51.3, 51.7)
-template_raster <- crop(template_raster, crop_extent)
-power_lines <- crop(power_lines, crop_extent)
-roads <- crop(roads, crop_extent)
-# Create Euclidean Distance Raster for raster
-plot(template_raster, main = "Elevation")
-lines(power_lines, col="red", lwd=2)
-lines(roads, col="blue", lwd=1)
-# Power Lines
-dist_power <- distance(template_raster, power_lines)
-# Define Fuzzy Function (Monotonically Decreasing)
+all_roads <- do.call(rbind, lapply(road_files, st_read))
+
+strategic_roads <- all_roads %>%
+  filter(class == "Motorway" |
+           (class == "A Road" & primary == "true")) # Filter for motorways and primary A-roads
+
+
+# Read UK boundary
+uk_boundary <- st_read("C:\\Users\\alfat\\Documents\\STA_MSc\\R\\Group Assignment\\Data\\road_networks\\Local_Authority_Districts_May_2024_Boundaries_UK_BGC_-5850961694214429102\\LAD_MAY_2024_UK_BGC.shp")
+
+england_boundary <- uk_boundary %>%
+  filter(str_detect(LAD24CD, "^E")) # Filter for England only
+# Clip to England only
+england_strategic <- st_intersection(strategic_roads, england_boundary)
+
+# Remove any NA values in class column
+england_strategic <- england_strategic %>%
+  filter(!is.na(class))
+
+grid_res <- 1000 # 1km
+r_grid <- rast(ext(england_boundary), resolution = grid_res, crs = crs(england_boundary))
+values(r_grid) <- 1:ncell(r_grid)
+r_grid_masked <- mask(r_grid, england_boundary)
+
+# Calculate Euclidean distance to roads
+r_lines <- rasterize(england_strategic, r_grid_masked, field=1)
+dist_grid <- distance(r_lines)
+
+# Apply fuzzy membership function
+# Define fuzzy function (closer is better - decreasing)
 fuzzy_decrease <- function(x, max_dist) {
   val <- 1 - (x / max_dist)
   val[val < 0] <- 0
   return(val)
 }
-# Set maximum distance to 10km (10000m) because this is in geographic coordinates, terra will handle great-circle distances automatically
-# Apply function to raster values
-suitability_power <- app(dist_power, fun = function(x) fuzzy_decrease(x, max_dist = 10000))
 
-plot(suitability_power, main = "Fuzzy Suitability: Power Lines (Closer is Better)")
+# Apply function (max distance 10km)
+suitability_roads <- app(dist_grid, fun = function(x) fuzzy_decrease(x, max_dist = 10000))
 
-# Create Euclidean Distance Raster
-dist_roads <- distance(template_raster, roads)
+# Visualise
+plot(suitability_roads, main = "Major Road Network Proximity (England)")
+lines(england_strategic, col="blue", lwd=0.5)
 
-# Define Fuzzy Function (Symmetric / Trapezoidal)
-fuzzy_symmetric <- function(x, a, b, c, d) {
-  y <- rep(0, length(x))
-
-  # Rising limb (a to b)
-  idx_rise <- x > a & x < b
-  y[idx_rise] <- (x[idx_rise] - a) / (b - a)
-
-  # Plateau (b to c) - The "Sweet Spot"
-  idx_flat <- x >= b & x <= c
-  y[idx_flat] <- 1
-
-  # Falling limb (c to d)
-  idx_fall <- x > c & x < d
-  y[idx_fall] <- 1 - (x[idx_fall] - c) / (d - c)
-
-  return(y)
-}
-
-# Here we adjust parameters to fit the example scale: 500m to 2000m is the ideal distance
-suitability_roads <- app(dist_roads, fun = function(x) fuzzy_symmetric(x, a=0, b=500, c=2000, d=5000))
-
-plot(suitability_roads, main = "Fuzzy Suitability: Major Roads (Symmetric)")
+# Save the raster for MaxEnt
+writeRaster(suitability_roads,
+            "C:\\Users\\alfat\\Documents\\STA_MSc\\R\\Group Assignment\\Data\\road_network_proximity.tif",
+            overwrite=TRUE)
 
