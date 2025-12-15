@@ -41,7 +41,7 @@ dist_5000$`5000EmpAvgt` = (dist_5000$`5000EmpCart`+dist_5000$`5000EmpPTt`)/2
 grid_res <- 1000  # 1km
 r_grid <- rast(ext(england_only_map), resolution = grid_res, crs = crs(england_only_map))
 
-# Rasterize the hexagonal data
+# Rasterize the data
 employment_raster <- rasterize(
   vect(dist_5000),
   r_grid,
