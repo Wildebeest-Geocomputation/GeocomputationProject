@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 library(sf)
 library(maxnet)
 
@@ -12,22 +13,35 @@ data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
 presence <- c(suitability_power, suitability_roads)
 names(presence) <- c("power", "roads")
 
+=======
+>>>>>>> origin
 library(sf)
 library(maxnet)
-library(tidyverse)
 
+<<<<<<< HEAD
 data_centers_sf <- read_csv("data/UK_Data_Centers.csv") %>%
 >>>>>>> 2ddacb53eaed5f44aa7c199db6eaebe772c49923
+=======
+presence <- c(suitability_points, suitability_networks)
+names(presence) <- c("points", "networks")
+
+data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
+>>>>>>> origin
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
   st_transform(27700)
 
 # This is to get the actual raster values for each data center location
+<<<<<<< HEAD
 <<<<<<< HEAD
 # tidyr has a conflict with terra, so use :: to specify
 presence_vals <- terra::extract(presence, data_centers_sf, ID = FALSE)
 =======
 presence_vals <- extract(presence, data_centers_sf, ID = FALSE)
 >>>>>>> 2ddacb53eaed5f44aa7c199db6eaebe772c49923
+=======
+# tidyr has a conflict with terra, so use :: to specify
+presence_vals <- terra::extract(presence, data_centers_sf, ID = FALSE)
+>>>>>>> origin
 
 # This is to not getting error for maxent, there ar na now is because I crop the raster, so some data center doesn't have value
 valid_rows <- complete.cases(presence_vals)
@@ -40,6 +54,7 @@ model_data <- rbind(presence_clean, bg_data)
 # The background point set to 0 because in entropy, presence points are 1, 0 represent random distributed points
 pa <- c(rep(1, nrow(presence_clean)), rep(0, nrow(bg_data)))
 <<<<<<< HEAD
+<<<<<<< HEAD
 me_model <- maxnet(p = pa, data = model_data)
 suitability_map <- predict(presence, me_model, type = "logistic", na.rm = TRUE)
 
@@ -50,9 +65,17 @@ plot(suitability_map, main = "Data Center Suitability")
 dev.off()
 =======
 
+=======
+>>>>>>> origin
 me_model <- maxnet(p = pa, data = model_data)
+suitability_map <- predict(presence, me_model, type = "logistic", na.rm = TRUE)
+
 plot(me_model, type = "logistic")
 
-suitability_map <- predict(presence, me_model, type = "logistic")
+png("Data/SuitibilityMap/data_center_suitability.png", width = 2000, height = 2000, res = 300)
 plot(suitability_map, main = "Data Center Suitability")
+<<<<<<< HEAD
 >>>>>>> 2ddacb53eaed5f44aa7c199db6eaebe772c49923
+=======
+dev.off()
+>>>>>>> origin
