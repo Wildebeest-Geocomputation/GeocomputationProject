@@ -3,17 +3,10 @@
 library(sf)
 library(terra)
 library(tidyverse)
-source('Analysis/fuzzy.R')
-source('Analysis/boundaries.R')
+source('utils/fuzzy.R')
+source('utils/boundaries.R')
 
-grid_res <- 1000 # 20km
-
-r_grid <- rast(ext(england_bng), resolution = grid_res, crs = crs(england_bng))
-values(r_grid) <- 1:ncell(r_grid)
-# This is to get the actual grid cells only within England
-r_grid_masked <- mask(r_grid, england_bng)
-
-plot(r_grid_masked, main = paste("Raster Grid:", grid_res/1000, "km"), axes=FALSE)
+r_grid <- rast(ext(england_bng), resolution = 1000, crs = crs(england_bng))
 
 all_data <- read_csv("./Data/Example/crime_england_robbery_2025_09.csv")
 crime_england <- all_data%>%
@@ -26,10 +19,12 @@ crime_england <- all_data%>%
 plot(crime_england)
 
 # raster ize points to raster grid, it will assign value 1 to the cells with points
-r_points <- rasterize(vect(crime_england), r_grid_masked, field = 1)
+r_points <- rasterize(vect(crime_england), r_grid, field = 1)
 dist_grid <- distance(r_points)
 plot(dist_grid)
 suitability_points <- app(dist_grid, fun = function(x) fuzzy_decrease(x, max_dist = 5000))
+suitability_points <- mask(suitability_points, england_bng)
+
 plot(suitability_points)
 
 # testing function from FullProcess

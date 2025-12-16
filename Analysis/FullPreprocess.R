@@ -12,20 +12,18 @@ calculate_distance <- function(
 
   message('Generating grids from England boundaries')
   r_grid <- rast(ext(england_bng), resolution = grid_size, crs = "EPSG:27700")
-  values(r_grid) <- 1:ncell(r_grid)
-  r_grid_masked <- mask(r_grid, england_bng)
 
   if (type=='network') {
     lines_latlon <- as.lines(data)
-    lines <- project(lines_latlon, crs(r_grid_masked))
+    lines <- project(lines_latlon, crs(r_grid))
 
     message('Calculating raster')
-    res <- rasterize(lines, r_grid_masked, field = 1, touches = TRUE)
+    res <- rasterize(lines, r_grid, field = 1, touches = TRUE)
 
   }
   else if (type=='point') {
 
-    res <- rasterize(vect(data), r_grid_masked, field = 1)
+    res <- rasterize(vect(data), r_grid, field = 1)
 
   }
   else {
@@ -35,7 +33,7 @@ calculate_distance <- function(
   dist_grid <- distance(res)
   plot(dist_grid)
   suitability <- app(dist_grid, fun = function(x) fuzzy_decrease(x, max_dist = max_dist))
-
+  suitability <- mask(suitability, england_bng)
   plot(suitability)
 
   message('Save to tif')
