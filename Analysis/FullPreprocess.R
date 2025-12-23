@@ -5,9 +5,10 @@
 #' @param type 'network' for line data, 'point' for point data
 #' @param save_name File name to save the output tif, if FALSE not saving
 #' @param max_dist Maximum distance for fuzzy decrease function
+#' @param suitability_type Type of suitability function
 #' @return A raster of suitability values
 calculate_distance <- function(
-    data, grid_size, type='network', save_name=FALSE, max_dist=10000
+    data, grid_size, type='network', save_name=FALSE, max_dist=10000, suitability_type='decrease'
 ) {
 
   message('Generating grids from England boundaries')
@@ -22,6 +23,7 @@ calculate_distance <- function(
 
   }
   else if (type=='point') {
+    # This is also suitable for polygon like brownfield sites
 
     res <- rasterize(vect(data), r_grid, field = 1)
 
@@ -32,7 +34,14 @@ calculate_distance <- function(
 
   dist_grid <- distance(res)
   plot(dist_grid)
-  suitability <- app(dist_grid, fun = function(x) fuzzy_decrease(x, max_dist = max_dist))
+  if (suitability_type == 'decrease') {
+    suitability <- app(dist_grid, fun = function(x) fuzzy_decrease(x, max_dist = max_dist))
+  } else if (suitability_type == 'increase') {
+    suitability <- app(dist_grid, fun = function(x) fuzzy_increase(x, min_dist = max_dist))
+  } else {
+    stop("suitability_type must be either 'decrease' or 'increase'")
+  }
+
   suitability <- mask(suitability, england_bng)
   plot(suitability)
 

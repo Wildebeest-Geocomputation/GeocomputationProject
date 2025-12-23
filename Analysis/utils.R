@@ -5,6 +5,12 @@ fuzzy_decrease <- function(x, max_dist) {
   return(val)
 }
 
+fuzzy_increase <- function(x, min_dist) {
+  val <- (x - min_dist) / (max(x) - min_dist)
+  val[val < 0] <- 0
+  return(val)
+}
+
 # Define Fuzzy Function (Symmetric / Trapezoidal)
 fuzzy_symmetric <- function(x, a, b, c, d) {
   y <- rep(0, length(x))
@@ -23,3 +29,7 @@ fuzzy_symmetric <- function(x, a, b, c, d) {
 
   return(y)
 }
+
+curve(fuzzy_decrease(x, max_dist=10000), from=0, to=20000)
+curve(fuzzy_increase(x, min_dist=5000), from=0, to=20000)
+curve(fuzzy_symmetric(x, a=2000, b=4000, c=6000, d=8000), from=0, to=10000)
