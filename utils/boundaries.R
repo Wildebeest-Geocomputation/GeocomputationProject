@@ -1,5 +1,5 @@
 tryCatch({
-
+  # sometimes this doesn't work with no reason, try this again and it'll be fine
   library(rnaturalearth)
   message("Trying rnaturalearth ")
 

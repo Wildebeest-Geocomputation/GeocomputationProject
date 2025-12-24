@@ -1,12 +1,16 @@
 library(sf)
 library(maxnet)
 
+# Kenny
 brownfield <- rast("./Data/Tif/brownfield.tif")
 ldw <- rast("./Data/Tif/ldw.tif")
+# Al
+emplyment <- rast("./Data/Tif/employment_accessibility_england.tif")
+roadnetwork <- rast("./Data/Tif/road_network.tif")
 
-presence <- c(brownfield, ldw)
+presence <- c(brownfield, ldw, emplyment, roadnetwork)
 
-names(presence) <- c("brownfield", "ldw")
+names(presence) <- c("brownfield", "ldw", "employment_accessibility", "road_network")
 
 data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
@@ -29,6 +33,7 @@ pa <- c(rep(1, nrow(presence_clean)), rep(0, nrow(bg_data)))
 # There is a bug in model, if the input only contain 1 variable, it will cause error bacause  [drop = FALSE]
 me_model <- maxnet(p = pa, data = model_data)
 suitability_map <- predict(presence, me_model, type = "logistic", na.rm = TRUE)
+plot(suitability_map)
 
 # This is response curve
 plot(me_model, type = "logistic")
@@ -36,3 +41,9 @@ plot(me_model, type = "logistic")
 png("Data/SuitibilityMap/data_center_suitability.png", width = 2000, height = 2000, res = 300)
 plot(suitability_map, main = "Data Center Suitability")
 dev.off()
+
+# AUC
+library(ROCR)
+pred <- predict(me_model, newdata = model_data, type = "logistic")
+pred_obj <- prediction(pred, pa)
+auc <- performance(pred_obj, measure = "auc")
