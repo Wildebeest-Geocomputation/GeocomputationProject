@@ -2,6 +2,10 @@
 library(sf)
 library(readxl)
 library(tidyverse)
+library(osmdata)
+library(ggplot2)
+library(rgeoboundaries)
+
 # reed first sheet
 Residential <- read_xlsx("PData/Individual/landvalue.xlsx", sheet="Residential")%>%filter(!is.na(`...2`))
 Industrial <- read_xlsx("PData/Individual/landvalue.xlsx", sheet="Industrial")%>%filter(!is.na(`...3`))
@@ -15,14 +19,9 @@ Residential <- Residential[-1, ]
 colnames(Industrial) <- Industrial[1, ]
 Industrial <- Industrial[-1, ]
 
-library(rgeoboundaries)
+
 uk_l2 <- gb_adm2("United Kingdom")
-uk_l2
 
-library(osmdata)
-library(ggplot2)
-
-Industrial
 
 place_name <- "Amber Valley"
 
@@ -39,14 +38,10 @@ county_boundary%>%
   geom_sf() +
   ggtitle(paste("Boundary of", place_name))
 
-library(tidyverse)
-library(osmdata)
-library(sf)
-
 get_la_geometry <- function(la_name, region_name = "") {
 
   search_query <- paste(la_name, "UK", sep = ", ")
-  message(paste("正在查詢:", search_query, "..."))
+  message(paste("Searching:", search_query, "..."))
   # Sys.sleep(1)
 
   tryCatch({
@@ -182,6 +177,8 @@ stock_of_properties
 full_sop <- stock_of_properties %>%
   left_join(lsoa_shp, by = c("area_code" = "LAD23CD"))
 
+library(tmap)
+library(leaflet)
 # feature <- `Computer Centres (Purpose Built)`
 feature <- 'Large Distribution Warehouses'
 filter_sop <- full_sop%>%
@@ -216,7 +213,33 @@ tm_shape(map_data) +
               palette = "YlGnBu",
               title = "Employment rate (%)")
 
+# Economic for model
+source('utils/boundaries.R')
 
+# This is from Economic.R
+# Large Distribution Warehouses
+plot(filter_sop)
+
+ldw_england <- filter_sop%>%
+  st_as_sf(wkt = 'geometry', crs = 4326)%>%
+  st_transform(crs = 27700)%>%
+  st_filter(st_as_sf(england_bng))
+
+plot(ldw_england)
+
+r_grid <- rast(ext(england_bng), resolution = 1000, crs = crs(england_bng))
+r_points <- rasterize(vect(ldw_england), r_grid, field = 'value')
+
+min_val <- global(r_points, "min", na.rm=TRUE)[1,1]
+max_val <- global(r_points, "max", na.rm=TRUE)[1,1]
+
+r_scaled <- (r_points - min_val) / (max_val - min_val)
+plot(r_scaled)
+
+writeRaster(r_scaled, filename='./Data/Tif/LDW.tif', overwrite=TRUE)
+
+source('Analysis/FullPreprocess.R')
+suitability_points <- calculate_distance(ldw_england, grid_size=1000, type='area', save_name='./Data/Tif/LDW', max_dist=5000, suitability_type='increase')
 
 
 

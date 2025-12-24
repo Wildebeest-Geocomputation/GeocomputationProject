@@ -1,9 +1,12 @@
 library(sf)
 library(maxnet)
 
-presence <- c(suitability_points, suitability_networks)
-# presence <- c(suitability_points)
-names(presence) <- c("points", "networks")
+brownfield <- rast("./Data/Tif/brownfield.tif")
+ldw <- rast("./Data/Tif/ldw.tif")
+
+presence <- c(brownfield, ldw)
+
+names(presence) <- c("brownfield", "ldw")
 
 data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
@@ -18,7 +21,6 @@ valid_rows <- complete.cases(presence_vals)
 presence_clean <- presence_vals[valid_rows, , drop = FALSE]
 
 bg_data <- spatSample(presence, size = 1000, method = "random", na.rm = TRUE, values = TRUE)
-# bg_data <- as.data.frame(bg_data)
 model_data <- as.data.frame(rbind(presence_clean, bg_data))
 
 # The background point set to 0 because in entropy, presence points are 1, 0 represent random distributed points
