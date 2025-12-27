@@ -8,8 +8,13 @@
 #' @param suitability_type Type of suitability function
 #' @return A raster of suitability values
 calculate_distance <- function(
-    data, grid_size, type='network', save_name=FALSE, max_dist=10000, suitability_type='decrease'
+    data, grid_size, type='network', save_name=FALSE, max_dist=10000, suitability_type='decrease', area_value=FALSE
 ) {
+
+  data <- data%>%
+    st_transform(crs = "EPSG:27700")%>%
+    st_filter(st_as_sf(england_bng))
+
   message('Generating grids from England boundaries')
   r_grid <- rast(ext(england_bng), resolution = grid_size, crs = "EPSG:27700")
 
@@ -27,7 +32,7 @@ calculate_distance <- function(
   }
   else if (type == 'area') {
     # Use this if your area has a value
-    res <- rasterize(vect(data), r_grid, field = 'value')
+    res <- rasterize(vect(data), r_grid, field = area_value)
   }
   else {
     stop("Type must be either 'network' or 'point' or 'area'")
@@ -57,9 +62,8 @@ calculate_distance <- function(
   }
 
   plot(suitability)
-
-  message('Save to tif')
   if(!is.na(save_name)) {
+    message('Save to tif')
     writeRaster(suitability, filename=paste0(save_name, '.tif'), overwrite=TRUE)
   }
 

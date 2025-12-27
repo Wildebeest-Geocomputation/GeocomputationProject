@@ -1,16 +1,15 @@
 library(sf)
 library(maxnet)
 
-# Kenny
-brownfield <- rast("./Data/Tif/brownfield.tif")
-ldw <- rast("./Data/Tif/ldw.tif")
-# Al
-emplyment <- rast("./Data/Tif/employment_accessibility_england.tif")
-roadnetwork <- rast("./Data/Tif/road_network.tif")
+tif_files <- list.files(path = "./Data/Tif",
+                        pattern = "\\.tif$",
+                        full.names = TRUE,
+                        ignore.case = TRUE)
 
-presence <- c(brownfield, ldw, emplyment, roadnetwork)
+presence <- rast(tif_files)
 
-names(presence) <- c("brownfield", "ldw", "employment_accessibility", "road_network")
+library(tools)
+names(presence) <- file_path_sans_ext(basename(tif_files))
 
 data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
@@ -47,3 +46,15 @@ library(ROCR)
 pred <- predict(me_model, newdata = model_data, type = "logistic")
 pred_obj <- prediction(pred, pa)
 auc <- performance(pred_obj, measure = "auc")
+auc@y.values[[1]]
+
+pred_obj <- prediction(pred, pa)
+roc_perf <- performance(pred_obj, measure = "tpr", x.measure = "fpr")
+
+# Y (TPR, True Positive Rate / Sensitivity)
+# X (FPR, False Positive Rate)
+plot(roc_perf,
+     main = "ROC Curve",
+     ylab = "True Positive Rate (Sensitivity)",
+     xlab = "False Positive Rate")
+abline(a = 0, b = 1, lty = 2, col = "gray")
