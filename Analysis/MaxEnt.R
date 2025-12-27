@@ -58,3 +58,34 @@ plot(roc_perf,
      ylab = "True Positive Rate (Sensitivity)",
      xlab = "False Positive Rate")
 abline(a = 0, b = 1, lty = 2, col = "gray")
+
+# confusion matrix
+library(caret)
+pred_factor <- factor(ifelse(pred > 0.5, 1, 0), levels = c(0, 1))
+actual_factor <- factor(pa, levels = c(0, 1))
+
+# No Information Rate: if we always predict the majority class
+# P-Value [Acc > NIR]: if our model is significantly better than NIR
+# Kappa: after deducting the probability of "just guessing correctly", the model's true discrimination ability
+# Mcnemar's Test P-Value: Bias, [(true false) - (false true)]^2/[(true false) + (false true)], finding two biased predictions
+# Sensitivity: TP / (TP + FN)
+# Specificity: TN / (TN + FP)
+# Pos Pred Value: TP / (TP + FP)
+# Neg Pred Value: TN / (TN + FN)
+# Prevalence: (TP + FN) / Total (same as NIR)
+# Detection Rate: TP / Total
+# Detection Prevalence: (TP + FP) / Total
+# Balanced Accuracy: (Sensitivity + Specificity) / 2
+confusionMatrix(pred_factor, actual_factor)
+# In our case, false positive means that we predict data centre is a good location when it is not.
+
+cm <- confusionMatrix(pred_factor, actual_factor)
+cm_table <- as.data.frame(cm$table)
+library(tidyverse)
+cm_table%>%
+  ggplot(aes(Reference, Prediction)) +
+  geom_tile(aes(fill = Freq), color = "white") +
+  scale_fill_gradient(low = "white", high = "steelblue") +
+  geom_text(aes(label = Freq), vjust = 1) +
+  labs(title = "Confusion Matrix", fill = "Count") +
+  theme_minimal()
