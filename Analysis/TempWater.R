@@ -42,6 +42,11 @@ for (i in c('tas_annual_8100_median', 'tas_annual_0120_median')){
 }
 
 # Wind Speed Data
+# The dataset is derived from projections of seasonal mean wind speeds from UKCP18
+# which are averaged to produce values for the 1981-2000 baseline and two warming levels:
+#   2.0°C and 4.0°C above the pre-industrial (1850-1900) period. All wind speeds have units
+# of metres per second (m / s). These data enable users to compare future seasonal mean wind
+# speeds to those of the baseline period.
 # https://climate-themetoffice.hub.arcgis.com/datasets/6b2bee0ed29749caaaf9c49f5ddd3a7f_0/explore?location=58.185175%2C-5.068438%2C7.53
 file_path <- '/Users/wangqiqian/Desktop/UCL/SAG/PData/Individual/TempWater/Seasonal_Average_Wind_Speed_Projections_5km_-5913176971528534346.gpkg'
 st_layers(file_path)
@@ -60,6 +65,10 @@ for (i in c('summer', 'autumn', 'winter', 'spring')){
 }
 
 # Drought
+# The DSI 12 month accumulations are calculated for two baseline (historical) periods 1981-2000
+# (corresponding to 0.51°C warming) and 2001-2020 (corresponding to 0.87°C warming)
+# and for global warming levels of 1.5°C, 2.0°C, 2.5°C, 3.0°C, 4.0°C above the pre-industrial
+# (1850-1900) period.
 # https://climate-themetoffice.hub.arcgis.com/datasets/b9e6f84d2ee943d0be17d93366bca8dc_0/explore?location=55.082647%2C-3.273213%2C6.19
 file_path <- '/Users/wangqiqian/Desktop/UCL/SAG/PData/Individual/TempWater/Drought_Severity_Index_12_Month_Accumulations_1364492214063738842.gpkg'
 st_layers(file_path)
@@ -71,4 +80,168 @@ for (i in c('DSI12_baseline_81_00_median', 'DSI12_baseline_00_17_median')){
     drought_data, grid_size=1000, type='area', save_name=paste('./Data/Tif/', choose, sep = ''),
     max_dist=5000, suitability_type='decrease', area_value = choose)
 }
+
+
+# temp_name
+temp_bng%>%
+  ggplot() +
+  geom_histogram(aes(x = tas_annual_8100_median, fill = '1981-2000'), binwidth = 0.1, alpha = 0.5) +
+  geom_histogram(aes(x = tas_annual_0120_median, fill = '2001-2020'), binwidth = 0.1, alpha = 0.5) +
+  labs(title = "Annual Average Air Temperature (°C)",
+       x = "Annual Average Air Temperature (°C)",
+       y = "Count",
+       fill = "Time Period")+
+  scale_fill_manual(values = c("1981-2000" = "blue", "2001-2020" = "red"))+
+  theme_minimal()
+
+# e.g. when the global average temperature reaches 2.0 c, how much warmer the area is projected to b
+plot_data <- temp_bng %>%
+  st_drop_geometry() %>%
+  dplyr::select(starts_with("tas_annual_") & -matches("8100|0120"))%>%
+  pivot_longer(cols = everything(), names_to = "raw_name", values_to = "value")%>%
+  mutate(
+    gwl = str_extract(raw_name, "(?<=tas_annual_)[0-9]+"),
+    stat = str_extract(raw_name, "[a-z]+$")) %>%
+  mutate(
+    gwl_num = as.numeric(gwl),
+    gwl_label = case_when(
+      gwl == "15" ~ "1.5°C", gwl == "2"  ~ "2.0°C", gwl == "25" ~ "2.5°C",
+      gwl == "3"  ~ "3.0°C", gwl == "35" ~ "3.5°C", gwl == "4"  ~ "4.0°C"))%>%
+  pivot_wider(id_cols = c(gwl_label, gwl_num), names_from = stat,
+              values_from = value, values_fn = mean) %>%
+  arrange(gwl_num)
+
+correct_order <- c("1.5°C", "2.0°C", "2.5°C", "3.0°C", "3.5°C", "4.0°C")
+plot_data$gwl_label <- factor(plot_data$gwl_label, levels = correct_order)
+
+ggplot(plot_data, aes(x = gwl_label)) +
+  geom_boxplot(
+    aes(ymin = lower,lower = lower, middle = median, upper = upper, ymax = upper),
+    stat = "identity", fill = "orange", alpha = 0.5, width = 0.5) +
+  labs(
+    title = "Annual Temperature Change by Global Warming Level",
+    x = "Global Warming Level",
+    y = "Temperature Change (°C)") +
+  theme_minimal()
+
+
+# wind_bng
+wind_bng
+wind_bng%>%
+  ggplot() +
+  geom_histogram(aes(x = ws_summer_baseline_median, fill = 'summer'), binwidth = 0.1, alpha = 0.5) +
+  geom_histogram(aes(x = ws_winter_baseline_median, fill = 'winter'), binwidth = 0.1, alpha = 0.5) +
+  geom_histogram(aes(x = ws_autumn_baseline_median, fill = 'autumn'), binwidth = 0.1, alpha = 0.5) +
+  geom_histogram(aes(x = ws_spring_baseline_median, fill = 'spring'), binwidth = 0.1, alpha = 0.5) +
+  labs(title = "Seasonal Average Wind Speed (m/s)",
+       x = "Seasonal Average Wind Speed (m/s)",
+       y = "Count",
+       fill = "Season")+
+  scale_fill_manual(values = c("summer" = "blue", "winter" = "red",
+  "autumn" = 'green', "spring" = 'yellow')) +
+  theme_minimal()
+
+# e.g. when the global average temperature reaches 2.0 c, how much windier the area is projected to be
+wind_bng%>%
+  ggplot() +
+  geom_histogram(aes(x = ws_summer_20_median, fill = 'summer 2.0°C'), binwidth = 0.3, alpha = 0.5) +
+  geom_histogram(aes(x = ws_winter_20_median, fill = 'winter 2.0°C'), binwidth = 0.3, alpha = 0.5) +
+  geom_histogram(aes(x = ws_autumn_20_median, fill = 'autumn 2.0°C'), binwidth = 0.3, alpha = 0.5) +
+  geom_histogram(aes(x = ws_spring_20_median, fill = 'spring 2.0°C'), binwidth = 0.3, alpha = 0.5) +
+  labs(title = "Seasonal Average Wind Speed (m/s) at 2.0°C Global Warming Level",
+       x = "Seasonal Average Wind Speed (m/s)",
+       y = "Count",
+       fill = "Season")+
+  scale_fill_manual(values = c("summer 2.0°C" = "blue", "winter 2.0°C" = "red",
+                               "autumn 2.0°C" = 'green', "spring 2.0°C" = 'yellow')) +
+  theme_minimal()
+
+# 4.0
+wind_bng%>%
+  ggplot() +
+  geom_histogram(aes(x = ws_summer_40_median, fill = 'summer 4.0°C'), binwidth = 0.3, alpha = 0.5) +
+  geom_histogram(aes(x = ws_winter_40_median, fill = 'winter 4.0°C'), binwidth = 0.3, alpha = 0.5) +
+  geom_histogram(aes(x = ws_autumn_40_median, fill = 'autumn 4.0°C'), binwidth = 0.3, alpha = 0.5) +
+  geom_histogram(aes(x = ws_spring_40_median, fill = 'spring 4.0°C'), binwidth = 0.3, alpha = 0.5) +
+  labs(title = "Seasonal Average Wind Speed (m/s) at 4.0°C Global Warming Level",
+       x = "Seasonal Average Wind Speed (m/s)",
+       y = "Count",
+       fill = "Season")+
+  scale_fill_manual(values = c("summer 4.0°C" = "blue", "winter 4.0°C" = "red",
+                               "autumn 4.0°C" = 'green', "spring 4.0°C" = 'yellow')) +
+  theme_minimal()
+
+# drought_data
+# calculated with 12-month rainfall deficits provided as a percentage of the mean annual
+# climatological total rainfall (1981–2000 and 2020-2017) for that location.
+# It measures the severity of a drought, not the frequency.
+
+# Projections is based on 2000-2020
+
+drought_data%>%
+  ggplot() +
+  geom_histogram(aes(x = DSI12_baseline_81_00_median, fill = "1981-2000"),
+                 binwidth = 0.1, alpha = 0.5) +
+  geom_histogram(aes(x = DSI12_baseline_00_17_median, fill = "2000-2017"),
+                 binwidth = 0.1, alpha = 0.5) +
+  labs(title = "Drought Severity Index (12-Month Accumulations)",
+       x = "Drought Severity Index",
+       y = "Count",
+       fill = "Time Period")+
+  scale_fill_manual(values = c("1981-2000" = "blue", "2000-2017" = "red")) +
+  theme_minimal()
+
+# e.g. when the global average temperature reaches 1.5 c, how much drier the area is projected to be
+drought_data%>%
+  ggplot() +
+  geom_histogram(aes(x = DSI12_15_median, fill = "1.5°C"),
+                 binwidth = 0.3, alpha = 0.5) +
+  geom_histogram(aes(x = DSI12_20_median, fill = "2.0°C"),
+                 binwidth = 0.3, alpha = 0.5) +
+  geom_histogram(aes(x = DSI12_25_median, fill = "2.5°C"),
+                 binwidth = 0.3, alpha = 0.5) +
+  geom_histogram(aes(x = DSI12_30_median, fill = "3.0°C"),
+                 binwidth = 0.3, alpha = 0.5) +
+  geom_histogram(aes(x = DSI12_40_median, fill = "4.0°C"),
+                 binwidth = 0.3, alpha = 0.5) +
+  labs(title = "Drought Severity Index (12-Month Accumulations)",
+       x = "Drought Severity Index",
+       y = "Count",
+       fill = "Global Warming Level")+
+  scale_fill_manual(values = c("1.5°C" = "blue", "2.0°C" = "red",
+                               "2.5°C" = 'green', "3.0°C" = 'yellow',
+                               "4.0°C" = 'purple')) +
+  theme_minimal()
+
+
+plot_data <- drought_data %>%
+  st_drop_geometry() %>%
+  dplyr::select(matches("DSI12_[0-9]+_")) %>%
+  pivot_longer(cols = everything(), names_to = "raw_name", values_to = "value") %>%
+  mutate(
+    gwl = str_extract(raw_name, "(?<=DSI12_)[0-9]+"), stat = str_extract(raw_name, "[a-z]+$")) %>%
+  mutate(
+    stat = ifelse(stat == "low", "lower", stat),
+    gwl_num = as.numeric(gwl),
+    gwl_label = case_when(
+      gwl == "15" ~ "1.5°C", gwl == "20"  ~ "2.0°C", gwl == "25" ~ "2.5°C",
+      gwl == "30"  ~ "3.0°C", gwl == "40"  ~ "4.0°C"))%>%
+  pivot_wider(id_cols = c(gwl_label, gwl_num), names_from = stat,
+              values_from = value, values_fn = mean) %>%
+  arrange(gwl_num)
+
+correct_order <- c("1.5°C", "2.0°C", "2.5°C", "3.0°C", "4.0°C")
+plot_data$gwl_label <- factor(plot_data$gwl_label, levels = correct_order)
+
+ggplot(plot_data, aes(x = gwl_label)) +
+  geom_boxplot(
+    aes(ymin = lower,lower = lower, middle = median, upper = upper, ymax = upper),
+    stat = "identity", fill = "orange", alpha = 0.5, width = 0.5) +
+  labs(
+    title = "Drought Severity Index (12-Month Accumulations) by Global Warming Level",
+    x = "Global Warming Level",
+    y = "Drought Severity Index") +
+  theme_minimal()
+
+
 
