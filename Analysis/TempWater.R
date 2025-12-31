@@ -1,4 +1,13 @@
+library(sf)
+library(readxl)
+library(tidyverse)
+library(osmdata)
+library(rgeoboundaries)
+library(leaflet)
+library(tmap)
+
 source('Analysis/FullPreprocess.R')
+source('utils/boundaries.R')
 
 # Annual Average Air Temperature (°C). Absolute values for 1981-2000 and 2001-2020
 # and change values for a range of future Global Warming Levels,
@@ -70,7 +79,7 @@ for (i in c('summer', 'autumn', 'winter', 'spring')){
 # and for global warming levels of 1.5°C, 2.0°C, 2.5°C, 3.0°C, 4.0°C above the pre-industrial
 # (1850-1900) period.
 # https://climate-themetoffice.hub.arcgis.com/datasets/b9e6f84d2ee943d0be17d93366bca8dc_0/explore?location=55.082647%2C-3.273213%2C6.19
-file_path <- '/Users/wangqiqian/Desktop/UCL/SAG/PData/Individual/TempWater/Drought_Severity_Index_12_Month_Accumulations_1364492214063738842.gpkg'
+file_path <- './PData/Individual/TempWater/Drought_Severity_Index_12_Month_Accumulations_1364492214063738842.gpkg'
 st_layers(file_path)
 drought_data <- st_read(file_path)
 
@@ -244,4 +253,27 @@ ggplot(plot_data, aes(x = gwl_label)) +
   theme_minimal()
 
 
+# water
+file_path <- './PData/Individual/TempWater/Water_Resource_Availability_and_Abstraction_Reliability_Cycle_2.gpkg'
+st_layers(file_path)
+# Q95 represent when the river is at its driest, lowest flow 5% of days in a year
+# (e.g., hottest August), what is its flow. so green is good
+# resavail: summary of camscdsq30, camscdsq50, camscdsq70, camscdsq95
+water <- st_read(file_path, layer = 'Resource_Availability_at_Q95')
+water_simple <- st_simplify(water, preserveTopology = TRUE, dTolerance = 100)
+water_simple <- st_transform(water_simple, 4326)
+
+tmap_mode("view")
+tm_basemap("CartoDB.Positron") +
+  tm_shape(water_simple) +
+  tm_polygons(col = "resavail",
+              style = "cat",
+              palette = "RdYlGn",
+              title = "Resource Availability (Q95)",
+              alpha = 0.7)
+
+choose <- 'resavail'
+calculate_distance(
+  water_simple, grid_size=1000, type='area', save_name=paste('./Data/Tif/', choose, sep = ''),
+  max_dist=5000, suitability_type='decrease', area_value = choose)
 
