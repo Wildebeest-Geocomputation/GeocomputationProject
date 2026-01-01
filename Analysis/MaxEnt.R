@@ -35,7 +35,9 @@ suitability_map <- predict(presence, me_model, type = "logistic", na.rm = TRUE)
 plot(suitability_map)
 
 # This is response curve
+png("Data/SuitibilityMap/model_importance.png", width = 2000, height = 2000, res = 300)
 plot(me_model, type = "logistic")
+dev.off()
 
 png("Data/SuitibilityMap/data_center_suitability.png", width = 2000, height = 2000, res = 300)
 plot(suitability_map, main = "Data Center Suitability")

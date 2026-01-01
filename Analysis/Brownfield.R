@@ -6,13 +6,20 @@ source('utils/boundaries.R')
 
 r_grid <- rast(ext(england_bng), resolution = 1000, crs = crs(england_bng))
 
-brownfield <- read_csv("./PData/brownfield-site.csv")
+# brownfield <- read_csv("./PData/brownfield-site.csv")
+brownfield <- read_csv('./PData/Individual/brownfield-land.csv')
 brownfield_england <- brownfield%>%
-  st_as_sf(wkt = 'geometry', crs = 4326)%>%
+  filter(!is.na(point)) %>%
+  st_as_sf(wkt = 'point', crs = 4326)%>%
   st_transform(crs = 27700)%>%
   st_filter(st_as_sf(england_bng))
 
 plot(brownfield_england)
+
+tmap_mode("plot")
+tm_basemap("CartoDB.Positron") +
+  tm_shape(brownfield_england) +
+  tm_dots(size = 0.01, col = "red")
 
 # raster ize points to raster grid, it will assign value 1 to the cells with points
 r_points <- rasterize(vect(brownfield_england), r_grid, field = 1)

@@ -34,15 +34,27 @@ colnames(temp)[4:27] <- cols
 file_path <- './PData/Individual/TempWater/annual_average_temperature_change_projections_local_authority_v1_-8872211456291778675.gpkg'
 st_layers(file_path)
 temp <- st_read(file_path)
-# temp%>%colnames()
+temp_bng <- temp %>% filter(str_starts(CODE, "E"))
 
-temp_bng <- temp%>%
-  filter(!NAME %in% c('Scottish Borders', 'Dumfries and Galloway'))
-
-tmap_mode("view")
+tmap_mode("plot")
 tm_basemap("CartoDB.Positron") +
   tm_shape(temp_bng) +
-  tm_polygons("tas_annual_0120_median", palette = "YlOrRd")
+  tm_polygons(
+    c('tas_annual_8100_median', 'tas_annual_0120_median'),
+    title = 'DSI',
+    palette = "YlOrRd",
+    border.alpha = 0,
+    style = "cont",
+    breaks = c(0, 14)) +
+  tm_facets(ncol = 2, free.scales = FALSE) +
+  tm_layout(
+    panel.labels = c("1981-2000", "2001-2020"),
+    legend.outside = FALSE,
+    legend.position = c("right", "top"),
+    legend.bg.color = "white",
+    legend.bg.alpha = 0.6,
+    legend.frame = TRUE,
+    main.title = 'Median Air Temperature (°C)')
 
 for (i in c('tas_annual_8100_median', 'tas_annual_0120_median')){
   suitability_points <- calculate_distance(
@@ -60,11 +72,25 @@ for (i in c('tas_annual_8100_median', 'tas_annual_0120_median')){
 file_path <- '/Users/wangqiqian/Desktop/UCL/SAG/PData/Individual/TempWater/Seasonal_Average_Wind_Speed_Projections_5km_-5913176971528534346.gpkg'
 st_layers(file_path)
 wind_bng <- st_read(file_path)
+england_bng <- england_bng%>%
+  st_as_sf()%>%
+  st_transform(st_crs(wind_bng))
+wind_bng <- st_intersection(wind_bng, england_bng)
 
 tmap_mode("view")
-tm_basemap("CartoDB.Positron") +
-  tm_shape(wind_bng) +
-  tm_polygons("ws_spring_baseline_median", palette = "YlOrRd")
+tmap_mode("plot")
+tm_shape(wind_bng) +
+  tm_polygons(
+    c("ws_spring_baseline_median", "ws_summer_baseline_median", "ws_autumn_baseline_median", "ws_winter_baseline_median"),
+    border.alpha = 0, palette = "YlOrRd", style = "cont",
+    breaks = c(0, 14), title = "Wind Speed (m/s)") +
+  tm_facets(nrow = 2, ncol = 2, free.scales = FALSE) +
+  tm_layout(
+    panel.labels = c("Spring", "Summer", "Autumn", "Winter"),
+    legend.outside = TRUE,
+    legend.outside.position = "right",
+    main.title = "Seasonal Wind Speed Distribution",
+    main.title.position = "center")
 
 for (i in c('summer', 'autumn', 'winter', 'spring')){
   choose <- paste('ws_', i, '_baseline_median', sep = '')
@@ -82,6 +108,30 @@ for (i in c('summer', 'autumn', 'winter', 'spring')){
 file_path <- './PData/Individual/TempWater/Drought_Severity_Index_12_Month_Accumulations_1364492214063738842.gpkg'
 st_layers(file_path)
 drought_data <- st_read(file_path)
+england_bng <- england_bng%>%
+  st_as_sf()%>%
+  st_transform(st_crs(drought_data))
+drought_data <- st_intersection(drought_data, england_bng)
+
+tmap_mode("plot")
+tm_basemap("CartoDB.Positron") +
+  tm_shape(drought_data) +
+  tm_polygons(
+    c('DSI12_baseline_81_00_median', 'DSI12_baseline_00_17_median'),
+    title = 'DSI',
+    palette = "YlOrRd",
+    border.alpha = 0,
+    style = "cont",
+    breaks = c(0, 14)) +
+  tm_facets(ncol = 2, free.scales = FALSE) +
+  tm_layout(
+    panel.labels = c("1981-2000", "2001-2017"),
+    legend.outside = FALSE,
+    legend.position = c("right", "top"),
+    legend.bg.color = "white",
+    legend.bg.alpha = 0.6,
+    legend.frame = TRUE,
+    main.title = "Drought Severity Index (12-Month Accumulations)")
 
 for (i in c('DSI12_baseline_81_00_median', 'DSI12_baseline_00_17_median')){
   choose <- i
@@ -252,8 +302,8 @@ ggplot(plot_data, aes(x = gwl_label)) +
     y = "Drought Severity Index") +
   theme_minimal()
 
-
 # water
+# https://environment.data.gov.uk/dataset/62514eb5-e9d5-4d96-8b73-a40c5b702d43
 file_path <- './PData/Individual/TempWater/Water_Resource_Availability_and_Abstraction_Reliability_Cycle_2.gpkg'
 st_layers(file_path)
 # Q95 represent when the river is at its driest, lowest flow 5% of days in a year
@@ -263,14 +313,25 @@ water <- st_read(file_path, layer = 'Resource_Availability_at_Q95')
 water_simple <- st_simplify(water, preserveTopology = TRUE, dTolerance = 100)
 water_simple <- st_transform(water_simple, 4326)
 
-tmap_mode("view")
+target_levels <- c("at least 95%", "at least 70%", "at least 50%", "at least 30%", "less than 30%", "update")
+water_plot <- water_simple %>%
+  mutate(resavail = factor(resavail, levels = target_levels))
+colors <- c("#1a9641","#a6d96a", "#ffffbf", "#fdae61", "#d7191c", "#bababa")
+
+tmap_mode("plot")
 tm_basemap("CartoDB.Positron") +
   tm_shape(water_simple) +
   tm_polygons(col = "resavail",
               style = "cat",
+              palette = colors,
               palette = "RdYlGn",
-              title = "Resource Availability (Q95)",
-              alpha = 0.7)
+              title = "Resource Availability",
+              alpha = 0.7,
+              colorNA = "white",
+              border.alpha = 0)+
+  tm_layout(legend.position = c("right", "top"),
+            legend.title.size = 0.7,
+            legend.text.size = 0.55)
 
 choose <- 'resavail'
 calculate_distance(
