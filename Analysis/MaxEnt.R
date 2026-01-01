@@ -1,12 +1,19 @@
 library(sf)
 library(maxnet)
+library(terra)
+library(tidyverse)
+
+source('utils/boundaries.R')
 
 tif_files <- list.files(path = "./Data/Tif",
                         pattern = "\\.tif$",
                         full.names = TRUE,
                         ignore.case = TRUE)
 
-presence <- rast(tif_files)
+presence <- rast(tif_files)%>%
+  terra::classify(cbind(NA, 0))%>%
+  terra::mask(england_bng)
+plot(presence)
 
 library(tools)
 names(presence) <- file_path_sans_ext(basename(tif_files))
