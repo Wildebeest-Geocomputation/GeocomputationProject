@@ -24,6 +24,8 @@ geology_england <- st_read("C:/Temp_R/geology_england.gpkg")
 geology_best <- geology_england %>%
   filter(ROCK_D %in% c("SAND AND GRAVEL", "SAND"))
 
+sf::st_write(geology_best, "C:/Temp_R/geology_best.shp")
+
 cat("  Original features:", nrow(geology_england), "\n")
 cat("  Suitable features:", nrow(geology_best), "\n")
 
@@ -222,7 +224,7 @@ r_flood <- rasterize(
 
 # Visualize flood risk raster
 plot(r_flood,
-     main = "Flood Risk Areas (Binary)",
+     main = "Flood Risk Areas",
      col = c("lightblue", "red"),
      legend = TRUE)
 
