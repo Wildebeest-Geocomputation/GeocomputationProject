@@ -1,6 +1,4 @@
-uk_l2_web
-uk_l2_with_water
-dc_sf
+# This file combines the Fields data from FieldV2, watercourse, and data center.
 
 uk_l2_combined <- uk_l2_web %>%
   left_join(
@@ -12,7 +10,8 @@ uk_l2_combined <- uk_l2_web %>%
     by = "shapeName"
   )%>%
   select(
-    shapeName, area_km2, fields_total, geometry, total_length, avg_length, total_area_km2, length_unit, link_count
+    shapeName, area_km2, fields_total, geometry, total_length,
+    avg_length, total_area_km2, length_unit, link_count
   )
 
 dc_sf <- st_transform(dc_sf, st_crs(uk_l2_combined))
@@ -40,7 +39,8 @@ uk_l2_with_dc%>%
     size = 4
   )+
   labs(
-    title = "Relationship between Number of Fields and Average Length of Watercourse in UK Level 2 Areas",
+    title = "Relationship between Number of Fields and Average
+    Length of Watercourse in UK Level 2 Areas",
     x = "Number of Fields (brownfield)",
     y = "Average Length of Watercourse (length unit)",
     # size = "Num of DCs",
