@@ -1,15 +1,17 @@
 library(sf)
+library(terra)
 library(maxnet)
+library(readr)
+library(tidyr)
 
-tif_files <- list.files(path = "./Data/Tif",
-                        pattern = "\\.tif$",
-                        full.names = TRUE,
-                        ignore.case = TRUE)
+# Define the paths for the two specific files
+selected_tifs <- c("./Data/Tif/employment_accessibility_england.tif",
+                   "./Data/Tif/road_network.tif")
 
-presence <- rast(tif_files)
+presence <- rast(selected_tifs)
 
 library(tools)
-names(presence) <- file_path_sans_ext(basename(tif_files))
+names(presence) <- file_path_sans_ext(basename(selected_tifs))
 
 data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
@@ -19,7 +21,7 @@ data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
 # tidyr has a conflict with terra, so use :: to specify
 presence_vals <- terra::extract(presence, data_centers_sf, ID = FALSE)
 
-# This is to not getting error for maxent, there ar na now is because I crop the raster, so some data center doesn't have value
+# This is to not getting error for maxent, there are na now is because I crop the raster, so some data center doesn't have value
 valid_rows <- complete.cases(presence_vals)
 presence_clean <- presence_vals[valid_rows, , drop = FALSE]
 
@@ -37,8 +39,8 @@ plot(suitability_map)
 # This is response curve
 plot(me_model, type = "logistic")
 
-png("Data/SuitibilityMap/data_center_suitability.png", width = 2000, height = 2000, res = 300)
-plot(suitability_map, main = "Data Center Suitability")
+png("Data/SuitibilityMap/road_data_center_suitability.png", width = 2000, height = 2000, res = 300)
+plot(suitability_map, main = "Data Center Suitability by Connectivity Criteria")
 dev.off()
 
 # AUC
