@@ -1,8 +1,7 @@
 library(sf)
-library(maxnet)
 library(terra)
 library(tidyverse)
-
+library(maxnet)
 source('utils/boundaries.R')
 
 tif_files <- list.files(path = "./Data/Tif",
@@ -41,6 +40,40 @@ me_model <- maxnet(p = pa, data = model_data)
 suitability_map <- predict(presence, me_model, type = "logistic", na.rm = TRUE)
 plot(suitability_map)
 
+source('utils/model_performance.R')
+
+regmult_vals <- c(0.1, 0.5, 1)
+# l: linear
+# q: quadratic
+# h: hinge
+# p: product
+# t: threshold
+feature_classes <- c("l", "q", "h", "p", "t", "lq")
+best_score <- Inf
+best_model <- NULL
+
+for (rm in regmult_vals) {
+  for (fc in feature_classes) {
+    try({
+      my_formula <- maxnet.formula(p = pa, data = model_data, classes = fc)
+      mod <- maxnet(p = pa, data = model_data, f = my_formula, regmult = rm)
+      score <- calculate_AICc(mod, p = pa, data = model_data)
+
+      message(paste("RM:", rm, "| FC:", fc, "| AICc:", round(score, 2)))
+
+      if (!is.na(score) && score < best_score) {
+        best_score <- score
+        best_model <- mod
+        best_params <- c(rm, fc)
+      }
+    }, silent = FALSE)
+  }
+}
+me_model <- best_model
+
+message(paste("best AIC:", best_score))
+message(paste("Best model param RegMult:", best_params[1], "Features:", best_params[2]))
+
 # This is response curve
 png("Data/SuitibilityMap/model_importance.png", width = 2000, height = 2000, res = 300)
 plot(me_model, type = "logistic")
@@ -49,6 +82,16 @@ dev.off()
 png("Data/SuitibilityMap/data_center_suitability.png", width = 2000, height = 2000, res = 300)
 plot(suitability_map, main = "Data Center Suitability")
 dev.off()
+
+response.plot(me_model, names(model_data)[1], type = "logistic")
+
+library(tmap)
+tmap_mode("plot")
+suitability_map <- predict(presence, me_model, type = "logistic", na.rm = TRUE)
+suitability_map[suitability_map <= 0.5] <- NA
+tm_basemap("CartoDB.Positron") +
+  tm_shape(suitability_map) +
+  tm_raster(title = "Suitability", palette = "viridis", alpha = 0.7)
 
 # AUC
 library(ROCR)
