@@ -37,7 +37,7 @@ temp <- st_read(file_path)
 temp_bng <- temp %>% filter(str_starts(CODE, "E"))
 
 tmap_mode("plot")
-tm_basemap("CartoDB.Positron") +
+temp_map <- tm_basemap("CartoDB.Positron") +
   tm_shape(temp_bng) +
   tm_polygons(
     c('tas_annual_8100_median', 'tas_annual_0120_median'),
@@ -56,7 +56,12 @@ tm_basemap("CartoDB.Positron") +
     legend.frame = TRUE,
     main.title = 'Median Air Temperature (°C)')
 
-for (i in c('tas_annual_8100_median', 'tas_annual_0120_median')){
+tmap_save(temp_map, filename = "Data/Layout/map air temperature.png",
+          width = 10, height = 8, units = "in", dpi = 300,
+          device = ragg::agg_png)
+
+# for (i in c('tas_annual_8100_median', 'tas_annual_0120_median')){
+for (i in c('tas_annual_0120_median')){
   suitability_points <- calculate_distance(
     temp_bng, grid_size=1000, type='area', save_name=paste('./Data/Tif/', i, sep = ''),
     max_dist=5000, suitability_type='decrease', area_value = i)
@@ -65,7 +70,7 @@ for (i in c('tas_annual_8100_median', 'tas_annual_0120_median')){
 # Wind Speed Data
 # The dataset is derived from projections of seasonal mean wind speeds from UKCP18
 # which are averaged to produce values for the 1981-2000 baseline and two warming levels:
-#   2.0°C and 4.0°C above the pre-industrial (1850-1900) period. All wind speeds have units
+# 2.0°C and 4.0°C above the pre-industrial (1850-1900) period. All wind speeds have units
 # of metres per second (m / s). These data enable users to compare future seasonal mean wind
 # speeds to those of the baseline period.
 # https://climate-themetoffice.hub.arcgis.com/datasets/6b2bee0ed29749caaaf9c49f5ddd3a7f_0/explore?location=58.185175%2C-5.068438%2C7.53
@@ -79,7 +84,7 @@ wind_bng <- st_intersection(wind_bng, england_bng)
 
 tmap_mode("view")
 tmap_mode("plot")
-tm_shape(wind_bng) +
+wind_map <- tm_shape(wind_bng) +
   tm_polygons(
     c("ws_spring_baseline_median", "ws_summer_baseline_median", "ws_autumn_baseline_median", "ws_winter_baseline_median"),
     border.alpha = 0, palette = "YlOrRd", style = "cont",
@@ -93,12 +98,28 @@ tm_shape(wind_bng) +
     main.title.position = "center") +
   tm_check_fix()
 
+tmap_save(wind_map, filename = "Data/Layout/map wind speed.png",
+          width = 10, height = 8, units = "in", dpi = 300,
+          device = ragg::agg_png)
+
+
 for (i in c('summer', 'autumn', 'winter', 'spring')){
   choose <- paste('ws_', i, '_baseline_median', sep = '')
   suitability_points <- calculate_distance(
     wind_bng, grid_size=1000, type='area', save_name=paste('./Data/Tif/', choose, sep = ''),
     max_dist=5000, suitability_type='decrease', area_value = choose)
 }
+
+wind_bng <- wind_bng%>%
+  mutate(
+    ws_avg_baseline_median = (ws_summer_baseline_median +
+                                ws_winter_baseline_median +
+                                ws_autumn_baseline_median +
+                                ws_spring_baseline_median)/4)
+
+suitability_points <- calculate_distance(
+  wind_bng, grid_size=1000, type='area', save_name='./Data/Tif/ws_avg_baseline_median',
+  max_dist=5000, suitability_type='decrease', area_value = 'ws_avg_baseline_median')
 
 # Drought
 # The DSI 12 month accumulations are calculated for two baseline (historical) periods 1981-2000
@@ -115,7 +136,7 @@ england_bng <- england_bng%>%
 drought_data <- st_intersection(drought_data, england_bng)
 
 tmap_mode("plot")
-tm_basemap("CartoDB.Positron") +
+drought_map <- tm_basemap("CartoDB.Positron") +
   tm_shape(drought_data) +
   tm_polygons(
     c('DSI12_baseline_81_00_median', 'DSI12_baseline_00_17_median'),
@@ -134,13 +155,58 @@ tm_basemap("CartoDB.Positron") +
     legend.frame = TRUE,
     main.title = "Drought Severity Index (12-Month Accumulations)")
 
-for (i in c('DSI12_baseline_81_00_median', 'DSI12_baseline_00_17_median')){
+tmap_save(drought_map, filename = "Data/Layout/map dsi.png",
+          width = 10, height = 8, units = "in", dpi = 300,
+          device = ragg::agg_png)
+
+# for (i in c('DSI12_baseline_81_00_median', 'DSI12_baseline_00_17_median')){
+for (i in c('DSI12_baseline_00_17_median')){
   choose <- i
   suitability_points <- calculate_distance(
     drought_data, grid_size=1000, type='area', save_name=paste('./Data/Tif/', choose, sep = ''),
     max_dist=5000, suitability_type='decrease', area_value = choose)
 }
 
+# water
+# https://environment.data.gov.uk/dataset/62514eb5-e9d5-4d96-8b73-a40c5b702d43
+file_path <- './PData/Individual/TempWater/Water_Resource_Availability_and_Abstraction_Reliability_Cycle_2.gpkg'
+st_layers(file_path)
+# Q95 represent when the river is at its driest, lowest flow 5% of days in a year
+# (e.g., hottest August), what is its flow. so green is good
+# resavail: summary of camscdsq30, camscdsq50, camscdsq70, camscdsq95
+water <- st_read(file_path, layer = 'Resource_Availability_at_Q95')
+water_simple <- st_simplify(water, preserveTopology = TRUE, dTolerance = 100)
+water_simple <- st_transform(water_simple, 4326)
+
+target_levels <- c("at least 95%", "at least 70%", "at least 50%", "at least 30%", "less than 30%", "update")
+water_plot <- water_simple %>%
+  mutate(resavail = factor(resavail, levels = target_levels))
+colors <- c("#1a9641","#a6d96a", "#ffffbf", "#fdae61", "#d7191c", "#bababa")
+
+tmap_mode("plot")
+water_map <- tm_basemap("CartoDB.Positron") +
+  tm_shape(water_plot) +
+  tm_polygons(col = "resavail",
+              style = "cat",
+              palette = colors,
+              title = "Resource Availability",
+              alpha = 0.7,
+              colorNA = "white",
+              border.alpha = 0)+
+  tm_layout(legend.position = c("right", "top"),
+            legend.title.size = 0.7,
+            legend.text.size = 0.55)
+
+tmap_save(water_map, filename = "Data/Layout/map water resource.png",
+            width = 10, height = 8, units = "in", dpi = 300,
+            device = ragg::agg_png)
+
+choose <- 'resavail'
+calculate_distance(
+  water_simple, grid_size=1000, type='area', save_name=paste('./Data/Tif/', choose, sep = ''),
+  max_dist=5000, suitability_type='decrease', area_value = choose)
+
+################################ EDA ################################
 
 # temp_name
 temp_bng%>%
@@ -198,7 +264,7 @@ wind_bng%>%
        y = "Count",
        fill = "Season")+
   scale_fill_manual(values = c("summer" = "blue", "winter" = "red",
-  "autumn" = 'green', "spring" = 'yellow')) +
+                               "autumn" = 'green', "spring" = 'yellow')) +
   theme_minimal()
 
 # e.g. when the global average temperature reaches 2.0 c, how much windier the area is projected to be
@@ -302,39 +368,3 @@ ggplot(plot_data, aes(x = gwl_label)) +
     x = "Global Warming Level",
     y = "Drought Severity Index") +
   theme_minimal()
-
-# water
-# https://environment.data.gov.uk/dataset/62514eb5-e9d5-4d96-8b73-a40c5b702d43
-file_path <- './PData/Individual/TempWater/Water_Resource_Availability_and_Abstraction_Reliability_Cycle_2.gpkg'
-st_layers(file_path)
-# Q95 represent when the river is at its driest, lowest flow 5% of days in a year
-# (e.g., hottest August), what is its flow. so green is good
-# resavail: summary of camscdsq30, camscdsq50, camscdsq70, camscdsq95
-water <- st_read(file_path, layer = 'Resource_Availability_at_Q95')
-water_simple <- st_simplify(water, preserveTopology = TRUE, dTolerance = 100)
-water_simple <- st_transform(water_simple, 4326)
-
-target_levels <- c("at least 95%", "at least 70%", "at least 50%", "at least 30%", "less than 30%", "update")
-water_plot <- water_simple %>%
-  mutate(resavail = factor(resavail, levels = target_levels))
-colors <- c("#1a9641","#a6d96a", "#ffffbf", "#fdae61", "#d7191c", "#bababa")
-
-tmap_mode("plot")
-tm_basemap("CartoDB.Positron") +
-  tm_shape(water_plot) +
-  tm_polygons(col = "resavail",
-              style = "cat",
-              palette = colors,
-              title = "Resource Availability",
-              alpha = 0.7,
-              colorNA = "white",
-              border.alpha = 0)+
-  tm_layout(legend.position = c("right", "top"),
-            legend.title.size = 0.7,
-            legend.text.size = 0.55)
-
-choose <- 'resavail'
-calculate_distance(
-  water_simple, grid_size=1000, type='area', save_name=paste('./Data/Tif/', choose, sep = ''),
-  max_dist=5000, suitability_type='decrease', area_value = choose)
-

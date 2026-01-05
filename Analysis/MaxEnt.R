@@ -1,8 +1,11 @@
 library(sf)
+library(tmap)
+library(tools)
 library(terra)
-library(tidyverse)
 library(maxnet)
+library(tidyverse)
 source('utils/boundaries.R')
+source('utils/model_performance.R')
 
 tif_files <- list.files(path = "./Data/Tif",
                         pattern = "\\.tif$",
@@ -14,7 +17,6 @@ presence <- rast(tif_files)%>%
   terra::mask(england_bng)
 plot(presence)
 
-library(tools)
 names(presence) <- file_path_sans_ext(basename(tif_files))
 
 data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
@@ -29,19 +31,20 @@ presence_vals <- terra::extract(presence, data_centers_sf, ID = FALSE)
 valid_rows <- complete.cases(presence_vals)
 presence_clean <- presence_vals[valid_rows, , drop = FALSE]
 
+set.seed(123)
 bg_data <- spatSample(presence, size = 1000, method = "random", na.rm = TRUE, values = TRUE)
 model_data <- as.data.frame(rbind(presence_clean, bg_data))
 
 # The background point set to 0 because in entropy, presence points are 1, 0 represent random distributed points
-set.seed(123)
 pa <- c(rep(1, nrow(presence_clean)), rep(0, nrow(bg_data)))
 # There is a bug in model, if the input only contain 1 variable, it will cause error bacause  [drop = FALSE]
 me_model <- maxnet(p = pa, data = model_data)
 suitability_map <- predict(presence, me_model, type = "logistic", na.rm = TRUE)
 plot(suitability_map)
 
-source('utils/model_performance.R')
-
+# This is to find the best model params using grid search,
+# this is based on AIC score to find the best model,
+# you can find formula in utils
 regmult_vals <- c(0.1, 0.5, 1)
 feature_classes <- c("l", "q", "h", "p", "t", "lq")
 grid_search_result <- grid_search(
@@ -68,10 +71,11 @@ dev.off()
 
 response.plot(me_model, names(model_data)[1], type = "logistic")
 
-library(tmap)
+report <- maxent_model_report(me_model, model_data, pa_vector = pa)
+
 tmap_mode("plot")
 suitability_map <- predict(presence, me_model, type = "logistic", na.rm = TRUE)
-threshold <- 0.5
+threshold <- report$youden$threshold
 suitability_map[suitability_map <= threshold] <- NA
 smap <- tm_basemap("CartoDB.Positron") +
   tm_shape(suitability_map) +
@@ -84,8 +88,5 @@ tmap_save(smap,
           width = 10, height = 8, units = "in", dpi = 300,
           device = ragg::agg_png)
 
-maxent_model_report(me_model, model_data)
 
-source('utils/model_performance.R')
-maxent_model_report(me_model, model_data)
 

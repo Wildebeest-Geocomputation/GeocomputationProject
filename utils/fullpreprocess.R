@@ -11,12 +11,15 @@ calculate_distance <- function(
     data, grid_size, type='network', save_name=FALSE, max_dist=10000, suitability_type='decrease', area_value=FALSE
 ) {
 
-  data <- data%>%
-    st_transform(crs = "EPSG:27700")%>%
-    st_filter(st_as_sf(england_bng))
+  mask_sf <- st_as_sf(england_bng) %>%
+    st_transform(crs = "EPSG:27700")
+
+  data <- data %>%
+    st_transform(crs = "EPSG:27700") %>%
+    st_filter(mask_sf)
 
   message('Generating grids from England boundaries')
-  r_grid <- rast(ext(england_bng), resolution = grid_size, crs = "EPSG:27700")
+  r_grid <- rast(ext(mask_sf), resolution = grid_size, crs = "EPSG:27700")
 
   if (type=='network') {
     lines_latlon <- as.lines(data)
