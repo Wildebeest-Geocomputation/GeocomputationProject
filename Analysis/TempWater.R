@@ -6,7 +6,7 @@ library(rgeoboundaries)
 library(leaflet)
 library(tmap)
 
-source('Analysis/FullPreprocess.R')
+source('utils/fullpreprocess.R')
 source('utils/boundaries.R')
 
 # Annual Average Air Temperature (°C). Absolute values for 1981-2000 and 2001-2020
@@ -90,7 +90,8 @@ tm_shape(wind_bng) +
     legend.outside = TRUE,
     legend.outside.position = "right",
     main.title = "Seasonal Wind Speed Distribution",
-    main.title.position = "center")
+    main.title.position = "center") +
+  tm_check_fix()
 
 for (i in c('summer', 'autumn', 'winter', 'spring')){
   choose <- paste('ws_', i, '_baseline_median', sep = '')
@@ -320,11 +321,10 @@ colors <- c("#1a9641","#a6d96a", "#ffffbf", "#fdae61", "#d7191c", "#bababa")
 
 tmap_mode("plot")
 tm_basemap("CartoDB.Positron") +
-  tm_shape(water_simple) +
+  tm_shape(water_plot) +
   tm_polygons(col = "resavail",
               style = "cat",
               palette = colors,
-              palette = "RdYlGn",
               title = "Resource Availability",
               alpha = 0.7,
               colorNA = "white",

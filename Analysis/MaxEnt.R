@@ -43,36 +43,19 @@ plot(suitability_map)
 source('utils/model_performance.R')
 
 regmult_vals <- c(0.1, 0.5, 1)
-# l: linear
-# q: quadratic
-# h: hinge
-# p: product
-# t: threshold
 feature_classes <- c("l", "q", "h", "p", "t", "lq")
-best_score <- Inf
-best_model <- NULL
+grid_search_result <- grid_search(
+  data = model_data,
+  pa = pa,
+  regmult_vals = regmult_vals,
+  feature_classes = feature_classes
+)
 
-for (rm in regmult_vals) {
-  for (fc in feature_classes) {
-    try({
-      my_formula <- maxnet.formula(p = pa, data = model_data, classes = fc)
-      mod <- maxnet(p = pa, data = model_data, f = my_formula, regmult = rm)
-      score <- calculate_AICc(mod, p = pa, data = model_data)
+me_model <- grid_search_result$best_model
 
-      message(paste("RM:", rm, "| FC:", fc, "| AICc:", round(score, 2)))
-
-      if (!is.na(score) && score < best_score) {
-        best_score <- score
-        best_model <- mod
-        best_params <- c(rm, fc)
-      }
-    }, silent = FALSE)
-  }
-}
-me_model <- best_model
-
-message(paste("best AIC:", best_score))
-message(paste("Best model param RegMult:", best_params[1], "Features:", best_params[2]))
+message(paste("best AIC:", grid_search_result$best_score))
+message(paste("Best model param RegMult:", grid_search_result$best_params[1],
+              "Features:", grid_search_result$best_params[2]))
 
 # This is response curve
 png("Data/SuitibilityMap/model_importance.png", width = 2000, height = 2000, res = 300)
@@ -88,56 +71,21 @@ response.plot(me_model, names(model_data)[1], type = "logistic")
 library(tmap)
 tmap_mode("plot")
 suitability_map <- predict(presence, me_model, type = "logistic", na.rm = TRUE)
-suitability_map[suitability_map <= 0.5] <- NA
-tm_basemap("CartoDB.Positron") +
+threshold <- 0.5
+suitability_map[suitability_map <= threshold] <- NA
+smap <- tm_basemap("CartoDB.Positron") +
   tm_shape(suitability_map) +
-  tm_raster(title = "Suitability", palette = "viridis", alpha = 0.7)
+  tm_raster(title = "Suitability", palette = "viridis", alpha = 0.7)+
+  tm_shape(england_bng) +
+  tm_borders(col = "black", alpha = 0.3, lwd = 0.2)
 
-# AUC
-library(ROCR)
-pred <- predict(me_model, newdata = model_data, type = "logistic")
-pred_obj <- prediction(pred, pa)
-auc <- performance(pred_obj, measure = "auc")
-auc@y.values[[1]]
+tmap_save(smap,
+          filename = paste0("Data/SuitibilityMap/suitability_map_", threshold, ".png"),
+          width = 10, height = 8, units = "in", dpi = 300,
+          device = ragg::agg_png)
 
-pred_obj <- prediction(pred, pa)
-roc_perf <- performance(pred_obj, measure = "tpr", x.measure = "fpr")
+maxent_model_report(me_model, model_data)
 
-# Y (TPR, True Positive Rate / Sensitivity)
-# X (FPR, False Positive Rate)
-plot(roc_perf,
-     main = "ROC Curve",
-     ylab = "True Positive Rate (Sensitivity)",
-     xlab = "False Positive Rate")
-abline(a = 0, b = 1, lty = 2, col = "gray")
+source('utils/model_performance.R')
+maxent_model_report(me_model, model_data)
 
-# confusion matrix
-library(caret)
-pred_factor <- factor(ifelse(pred > 0.5, 1, 0), levels = c(0, 1))
-actual_factor <- factor(pa, levels = c(0, 1))
-
-# No Information Rate: if we always predict the majority class
-# P-Value [Acc > NIR]: if our model is significantly better than NIR
-# Kappa: after deducting the probability of "just guessing correctly", the model's true discrimination ability
-# Mcnemar's Test P-Value: Bias, [(true false) - (false true)]^2/[(true false) + (false true)], finding two biased predictions
-# Sensitivity: TP / (TP + FN)
-# Specificity: TN / (TN + FP)
-# Pos Pred Value: TP / (TP + FP)
-# Neg Pred Value: TN / (TN + FN)
-# Prevalence: (TP + FN) / Total (same as NIR)
-# Detection Rate: TP / Total
-# Detection Prevalence: (TP + FP) / Total
-# Balanced Accuracy: (Sensitivity + Specificity) / 2
-confusionMatrix(pred_factor, actual_factor)
-# In our case, false positive means that we predict data centre is a good location when it is not.
-
-cm <- confusionMatrix(pred_factor, actual_factor)
-cm_table <- as.data.frame(cm$table)
-library(tidyverse)
-cm_table%>%
-  ggplot(aes(Reference, Prediction)) +
-  geom_tile(aes(fill = Freq), color = "white") +
-  scale_fill_gradient(low = "white", high = "steelblue") +
-  geom_text(aes(label = Freq), vjust = 1) +
-  labs(title = "Confusion Matrix", fill = "Count") +
-  theme_minimal()

@@ -14,4 +14,6 @@
 5. Brownfield Site: [Brownfield site](https://www.planning.data.gov.uk/dataset/brownfield-land)
 
 ## Suitability Map
-![image](./Data/SuitibilityMap/data_center_suitability.png)
+| Suitability Map | Suitability > 0.5 |
+| :---: | :---: |
+| ![image 1](./Data/SuitibilityMap/data_center_suitability.png) | ![image 2](./Data/SuitibilityMap/suitability_map_0.5.png) |

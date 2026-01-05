@@ -28,5 +28,5 @@ suitability_points <- mask(suitability_points, england_bng)
 plot(suitability_points)
 
 # testing function from FullProcess
-source('Analysis/FullPreprocess.R')
+source('utils/fullpreprocess.R')
 suitability_points <- calculate_distance(crime_england, grid_size=1000, type='point', save_name='./Data/Tif/point', max_dist=5000)

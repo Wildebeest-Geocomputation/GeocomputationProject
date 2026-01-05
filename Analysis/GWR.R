@@ -1,4 +1,8 @@
 # Need to run MaxEnt.R first to get the variables
+
+# Since GWR is linear based, it's sensitive to multicollinearity,
+# so although it's good at explaining spatially varying relationships,
+# it might be good for just support the maxent model
 if (!require("GWmodel")) install.packages("GWmodel")
 library(GWmodel)
 library(sf)
@@ -59,8 +63,8 @@ results_sf <- st_as_sf(ggwr_model$SDF)
 
 # Coefficient distribution summary
 # red for positive influence, blue for negative
-first_var_name <- 'tas_annual_8100_median'
+first_var_name <- 'tas_annual_0120_median'
 
-plot(results_sf['tas_annual_8100_median'],
+plot(results_sf[first_var_name],
      main = paste("Local Coefficients for:", first_var_name),
      pch = 20, cex = 0.5)

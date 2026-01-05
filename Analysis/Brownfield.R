@@ -1,4 +1,5 @@
 library(sf)
+library(tmap)
 library(terra)
 library(tidyverse)
 source('utils/fuzzy.R')
@@ -15,6 +16,13 @@ brownfield_england <- brownfield%>%
   st_filter(st_as_sf(england_bng))
 
 plot(brownfield_england)
+england_sf <- st_as_sf(england_bng)
+brownfield_sf <- st_as_sf(brownfield_trans)
+england_sf$brownfield_count <- lengths(st_intersects(england_sf, brownfield_sf))
+
+tm_basemap("CartoDB.Positron") +
+  tm_shape(england_sf) +
+  tm_polygons("brownfield_count", palette = "Reds", title = "Brownfield Sites Count")
 
 tmap_mode("plot")
 tm_basemap("CartoDB.Positron") +
@@ -31,5 +39,5 @@ suitability_points <- mask(suitability_points, england_bng)
 plot(suitability_points)
 
 # testing function from FullProcess
-source('Analysis/FullPreprocess.R')
+source('utils/fullpreprocess.R')
 suitability_points <- calculate_distance(brownfield_england, grid_size=1000, type='point', save_name='./Data/Tif/brownfield', max_dist=5000, suitability_type='decrease')
