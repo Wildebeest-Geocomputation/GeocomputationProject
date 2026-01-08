@@ -17,8 +17,10 @@ r_lines <- rasterize(eng_roads, r_grid_masked, field=1)
 dist_grid <- distance(r_lines)
 
 # Apply decreasing function (max distance 10km)
-suitability_roads <- app(dist_grid, fun = function(x) fuzzy_decrease(x, max_dist = 10000))
+suitability_roads <- app(dist_grid, fun = function(x) fuzzy_decrease(x, max_dist = 5000))
 suitability_roads <- mask(suitability_roads, england_bng)
+
+#suitability_roads[!is.na(r_lines)] <- NA # because the roads themselves can't contain data centres
 
 # Visualise
 plot(suitability_roads, main = "Major Road Network Proximity (England)")

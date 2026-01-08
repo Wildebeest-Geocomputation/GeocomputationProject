@@ -1,7 +1,7 @@
 # As of last run:
-# AUC: 0.934055555555556
-# best AIC: 5234.56944484783
-# Best model param RegMult: 0.1 Features: t
+# AUC: 0.92295333333333
+# Best AIC: 5264.12744728522
+# Best model param RegMult: 0.1 Features: lq
 
 
 
