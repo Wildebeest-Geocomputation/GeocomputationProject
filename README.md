@@ -12,6 +12,8 @@
 3. Drought: [Climate Data Portal](https://climate-themetoffice.hub.arcgis.com/datasets/b9e6f84d2ee943d0be17d93366bca8dc_0/explore?location=54.832243%2C-3.273213%2C6.19)
 4. Water availability: [Data Services Platform](https://environment.data.gov.uk/dataset/62514eb5-e9d5-4d96-8b73-a40c5b702d43)
 5. Brownfield Site: [Brownfield site](https://www.planning.data.gov.uk/dataset/brownfield-land)
+6. Major and Strategic Road Networks: [Edina Digimap Platform - paid or academic access required](https://digimap.edina.ac.uk/)
+7. Journey Times to Employment Centres - jts0501.ods: [Gov.UK Statistical data set](https://www.gov.uk/government/statistical-data-sets/journey-time-statistics-data-tables-jts)
 
 ## Suitability Map
 | Suitability Map | Suitability > 0.5 |
