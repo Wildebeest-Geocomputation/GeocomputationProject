@@ -7,17 +7,19 @@ library(tidyverse)
 source('utils/boundaries.R')
 source('utils/model_performance.R')
 
-tif_files <- list.files(path = "./Data/Tif",
+tif_files <- list.files(path = "~/GeocomputationProject/Data/Tif",
                         pattern = "\\.tif$",
                         full.names = TRUE,
                         ignore.case = TRUE)
 
-presence <- rast(tif_files)%>%
+selected_files <- tif_files[c(1,2,3,4,5,7,8,10,11,12)]
+
+presence <- rast(selected_files)%>%
   terra::classify(cbind(NA, 0))%>%
   terra::mask(england_bng)
 plot(presence)
 
-names(presence) <- file_path_sans_ext(basename(tif_files))
+names(presence) <- file_path_sans_ext(basename(selected_files))
 
 data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
@@ -61,11 +63,11 @@ message(paste("Best model param RegMult:", grid_search_result$best_params[1],
               "Features:", grid_search_result$best_params[2]))
 
 # This is response curve
-png("Data/SuitibilityMap/model_importance.png", width = 2000, height = 2000, res = 300)
+png("Data/SuitibilityMap/test_wo_lines_maxent_model_importance.png", width = 2000, height = 2000, res = 300)
 plot(me_model, type = "logistic")
 dev.off()
 
-png("Data/SuitibilityMap/data_center_suitability.png", width = 2000, height = 2000, res = 300)
+png("Data/SuitibilityMap/test__wo_lines_data_center_suitability.png", width = 2000, height = 2000, res = 300)
 plot(suitability_map, main = "Data Center Suitability")
 dev.off()
 
@@ -84,7 +86,7 @@ smap <- tm_basemap("CartoDB.Positron") +
   tm_borders(col = "black", alpha = 0.3, lwd = 0.2)
 
 tmap_save(smap,
-          filename = paste0("Data/SuitibilityMap/suitability_map_", threshold, ".png"),
+          filename = paste0("Data/SuitibilityMap/test_suitability_map_", threshold, ".png"),
           width = 10, height = 8, units = "in", dpi = 300,
           device = ragg::agg_png)
 
