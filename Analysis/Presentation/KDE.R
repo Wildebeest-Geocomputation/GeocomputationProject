@@ -5,7 +5,7 @@ library(sf)
 library(tmap)
 library(leaflet)
 
-uk <- st_read(dsn="~/Desktop/UCL/SAG/PData/CED_MAY_2025_EN_BFE_1747433965651526042/CED_MAY_2025_EN_BFE.shp", layer="CED_MAY_2025_EN_BFE")
+uk <- st_read(dsn="./PData/CED_MAY_2025_EN_BFE_1747433965651526042/CED_MAY_2025_EN_BFE.shp", layer="CED_MAY_2025_EN_BFE")
 brownfield <- read.csv('./PData/brownfield-site.csv')
 greenbelt <- read.csv('./PData/green-belt.csv')
 df_all <- bind_rows(brownfield, greenbelt)

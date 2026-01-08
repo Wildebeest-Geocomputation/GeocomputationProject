@@ -45,8 +45,8 @@ plot(suitability_map)
 # This is to find the best model params using grid search,
 # this is based on AIC score to find the best model,
 # you can find formula in utils
-regmult_vals <- c(0.1, 0.5, 1)
-feature_classes <- c("l", "q", "h", "p", "t", "lq")
+regmult_vals <- c(0.05, 0.1, 0.5, 1)
+feature_classes <- c("l", "q", "h", "p", "t", "lq", "lh", "lp", "lt")
 grid_search_result <- grid_search(
   data = model_data,
   pa = pa,
@@ -55,6 +55,9 @@ grid_search_result <- grid_search(
 )
 
 me_model <- grid_search_result$best_model
+grid_search_result$best_params
+# Look at the model performance to see the importance of each variable
+print(me_model$betas)
 
 message(paste("best AIC:", grid_search_result$best_score))
 message(paste("Best model param RegMult:", grid_search_result$best_params[1],
