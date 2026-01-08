@@ -61,10 +61,11 @@ tmap_save(temp_map, filename = "Data/Layout/map air temperature.png",
           device = ragg::agg_png)
 
 # for (i in c('tas_annual_8100_median', 'tas_annual_0120_median')){
-for (i in c('tas_annual_0120_median')){
+for (i in c('TAS Annual 2001-2020 median')){
   suitability_points <- calculate_distance(
-    temp_bng, grid_size=1000, type='area', save_name=paste('./Data/Tif/', i, sep = ''),
-    max_dist=5000, suitability_type='decrease', area_value = i)
+    temp_bng, grid_size=1000, type='area', #save_name=paste('./Data/Tif/', i, sep = ''),
+    save_name='./Data/Tif/Annual Median Temperature 2001-2020',
+    max_dist=10000, suitability_type='decrease', area_value = i)
 }
 
 # Wind Speed Data
@@ -163,8 +164,9 @@ tmap_save(drought_map, filename = "Data/Layout/map dsi.png",
 for (i in c('DSI12_baseline_00_17_median')){
   choose <- i
   suitability_points <- calculate_distance(
-    drought_data, grid_size=1000, type='area', save_name=paste('./Data/Tif/', choose, sep = ''),
-    max_dist=5000, suitability_type='decrease', area_value = choose)
+    drought_data, grid_size=1000, type='area', #save_name=paste('./Data/Tif/', choose, sep = ''),
+    save_name = './Data/Tif/Drought Median 2000-2017',
+    max_dist=10000, suitability_type='decrease', area_value = choose)
 }
 
 # water

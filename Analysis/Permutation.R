@@ -60,3 +60,25 @@ plot_data%>%
   coord_flip() +
   labs(x = "Variable", y = "Importance Score (Decrease in AUC)")
 
+
+
+library(GGally)
+
+ggpairs(model_data[,c("tas_annual_0120_median", "solar_suitability")],
+        title = "Scatter Plot Matrix (Spearman Correlation)",
+        upper = list(continuous = wrap("cor",
+                                       method = "pearson",
+                                       size = 4,
+                                       color = "black")),
+        lower = list(continuous = wrap("smooth",
+                                       alpha = 0.3,
+                                       size = 0.1,
+                                       color = "blue"))) +
+  theme_minimal()
+
+
+library(car)
+vif_model <- lm(pa ~., data = model_data)
+vif_result <- vif(vif_model)
+vif_result
+

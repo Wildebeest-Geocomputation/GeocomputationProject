@@ -59,9 +59,18 @@ calculate_distance <- function(
     max_val <- global(res, "max", na.rm=TRUE)[1,1]
 
     r_scaled <- (res - min_val) / (max_val - min_val)
-    plot(r_scaled)
 
-    suitability <- r_scaled
+    if (suitability_type == 'increase') {
+      message("Applying Linear Increase (High Value -> 1)")
+      suitability <- r_scaled
+
+    } else if (suitability_type == 'decrease') {
+      message("Applying Linear Decrease (High Value -> 0)")
+      suitability <- 1 - r_scaled
+
+    } else {
+      stop("suitability_type must be either 'decrease' or 'increase'")
+    }
   }
 
   plot(suitability)

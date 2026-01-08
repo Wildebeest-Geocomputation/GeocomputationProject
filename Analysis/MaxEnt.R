@@ -53,7 +53,6 @@ grid_search_result <- grid_search(
   regmult_vals = regmult_vals,
   feature_classes = feature_classes
 )
-
 me_model <- grid_search_result$best_model
 grid_search_result$best_params
 # Look at the model performance to see the importance of each variable
