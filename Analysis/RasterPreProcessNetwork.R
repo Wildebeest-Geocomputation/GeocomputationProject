@@ -28,5 +28,5 @@ suitability_networks <- mask(suitability_networks, england_bng)
 plot(suitability_networks)
 
 # testing function from FullProcess
-source('Analysis/FullPreprocess.R')
+source('utils/fullpreprocess.R')
 suitability_networks <- calculate_distance(england_bng, grid_size=1000, type='network', save_name='./Data/Tif/network', max_dist=10000)

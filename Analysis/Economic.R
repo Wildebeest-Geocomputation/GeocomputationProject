@@ -218,7 +218,7 @@ ldw_england <- filter_sop%>%
   st_transform(crs = 27700)%>%
   st_filter(st_as_sf(england_bng))
 
-source('Analysis/FullPreprocess.R')
+source('utils/fullpreprocess.R')
 suitability_points <- calculate_distance(ldw_england, grid_size=1000, type='area', max_dist=5000, suitability_type='increase')
 
 
