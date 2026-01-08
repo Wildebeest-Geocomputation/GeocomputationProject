@@ -4,6 +4,7 @@ library(sf)
 
 # LOAD RASTERS (To get the BNG Map Window)
 tif_files <- list.files(path = "~/GeocomputationProject/Data/Tif", pattern = "\\.tif$", full.names = TRUE)
+print(tif_files)
 selected_files <- tif_files[c(3,7)]
 print(selected_files)
 env_stack <- rast(selected_files)
