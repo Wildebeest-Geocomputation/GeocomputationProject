@@ -30,7 +30,7 @@ df_dist <- data.frame(distance_km = min_distances_km)
 
 # Full range with wider bins (for overview)
 ggplot(df_dist, aes(x = distance_km)) +
-  geom_histogram(binwidth = 5, fill = "lightblue", color = "darkblue", alpha = 0.7) +
+  geom_histogram(binwidth = 5, fill = "lightgreen", color = "darkgreen", alpha = 0.7) +
   geom_vline(aes(xintercept = median_dist),
              color = "red", linetype = "dashed", linewidth = 1.2) +
   geom_vline(aes(xintercept = percentile_95),
