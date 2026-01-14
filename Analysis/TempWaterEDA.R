@@ -1,4 +1,6 @@
 source('utils/boundaries.R')
+library(tidyverse)
+library(sf)
 england_bng
 data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%

@@ -7,19 +7,17 @@ library(tidyverse)
 source('utils/boundaries.R')
 source('utils/model_performance.R')
 
-tif_files <- list.files(path = "~/GeocomputationProject/Data/Tif",
+tif_files <- list.files(path = "./Data/Tif",
                         pattern = "\\.tif$",
                         full.names = TRUE,
                         ignore.case = TRUE)
 
-selected_files <- tif_files[c(1,2,3,4,5,7,8,10,11,12)]
-
-presence <- rast(selected_files)%>%
+presence <- rast(tif_files)%>%
   terra::classify(cbind(NA, 0))%>%
   terra::mask(england_bng)
 plot(presence)
 
-names(presence) <- file_path_sans_ext(basename(selected_files))
+names(presence) <- file_path_sans_ext(basename(tif_files))
 
 data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
@@ -36,13 +34,34 @@ presence_clean <- presence_vals[valid_rows, , drop = FALSE]
 set.seed(123)
 bg_data <- spatSample(presence, size = 1000, method = "random", na.rm = TRUE, values = TRUE)
 model_data <- as.data.frame(rbind(presence_clean, bg_data))
-
 # The background point set to 0 because in entropy, presence points are 1, 0 represent random distributed points
 pa <- c(rep(1, nrow(presence_clean)), rep(0, nrow(bg_data)))
 # There is a bug in model, if the input only contain 1 variable, it will cause error bacause  [drop = FALSE]
 me_model <- maxnet(p = pa, data = model_data)
 suitability_map <- predict(presence, me_model, type = "logistic", na.rm = TRUE)
 plot(suitability_map)
+
+
+crs(suitability_map) <- "EPSG:27700"
+# suitability_longlat <- terra::project(suitability_map, "EPSG:4326")
+# suitability_map[suitability_map == 0] <- NA
+tmap_mode("plot")
+tm_shape(suitability_map) +
+  tm_raster(style = "cont", palette = "viridis", alpha = 0.9, title = "Suitability") +
+  tm_compass(position = c("right", "top")) +
+  tm_scale_bar(position = c("right", "top")) +
+  tm_grid(labels.size = 0.7, n.x = 5, n.y = 5,
+          lwd = 0.1,
+          alpha = 0.5,
+          labels.inside.frame = FALSE)+
+  tm_layout(
+    main.title.size = 1,
+    legend.outside = FALSE,
+    legend.position = c("left", "top"),
+    legend.bg.color = "white",
+    legend.bg.alpha = 0.5,
+    legend.frame = TRUE
+  )
 
 # This is to find the best model params using grid search,
 # this is based on AIC score to find the best model,
@@ -65,11 +84,11 @@ message(paste("Best model param RegMult:", grid_search_result$best_params[1],
               "Features:", grid_search_result$best_params[2]))
 
 # This is response curve
-png("Data/SuitibilityMap/test_wo_lines_maxent_model_importance.png", width = 2000, height = 2000, res = 300)
+png("Data/SuitibilityMap/model_importance.png", width = 2000, height = 2000, res = 300)
 plot(me_model, type = "logistic")
 dev.off()
 
-png("Data/SuitibilityMap/test__wo_lines_data_center_suitability.png", width = 2000, height = 2000, res = 300)
+png("Data/SuitibilityMap/data_center_suitability.png", width = 2000, height = 2000, res = 300)
 plot(suitability_map, main = "Data Center Suitability")
 dev.off()
 
@@ -88,9 +107,11 @@ smap <- tm_basemap("CartoDB.Positron") +
   tm_borders(col = "black", alpha = 0.3, lwd = 0.2)
 
 tmap_save(smap,
-          filename = paste0("Data/SuitibilityMap/test_suitability_map_", threshold, ".png"),
+          filename = paste0("Data/SuitibilityMap/suitability_map_", threshold, ".png"),
           width = 10, height = 8, units = "in", dpi = 300,
           device = ragg::agg_png)
+
+
 
 
 
