@@ -15,6 +15,24 @@ data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
   st_transform(27700)
 
+# this is to thin the data to reduce spatial autocorrelation
+raw_data <- read_csv("Data/Example/UK_Data_Centers.csv")
+raw_data$species <- "DataCenter"
+thinned_dataset <- thin(loc.data = raw_data,
+                        lat.col = "lat", long.col = "lon",
+                        spec.col = "species",
+                        thin.par = 5, # km, if the data is too dense, remove one of the value
+                        reps = 1,
+                        locs.thinned.list.return = TRUE,
+                        write.files = FALSE,
+                        verbose = FALSE)
+dim(thinned_dataset[[1]])[1]
+dim(raw_data)[1] - dim(thinned_dataset[[1]])[1]
+
+thinned_df <- thinned_dataset[[1]]
+data_centers_sf <- st_as_sf(thinned_df, coords = c("Longitude", "Latitude"), crs = 4326) %>%
+  st_transform(27700)
+
 presence_vals <- terra::extract(presence, data_centers_sf, ID = FALSE)
 valid_rows <- complete.cases(presence_vals)
 presence_clean <- presence_vals[valid_rows, , drop = FALSE]

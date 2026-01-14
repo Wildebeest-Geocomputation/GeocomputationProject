@@ -6,6 +6,8 @@ library(maxnet)
 library(tidyverse)
 source('utils/boundaries.R')
 source('utils/model_performance.R')
+library(spThin)
+set.seed(123)
 
 tif_files <- list.files(path = "./Data/Tif",
                         pattern = "\\.tif$",
@@ -23,6 +25,26 @@ data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
   st_transform(27700)
 
+# this is to thin the data to reduce spatial autocorrelation
+# raw_data <- read_csv("Data/Example/UK_Data_Centers.csv")
+# raw_data$species <- "DataCenter"
+# thinned_dataset <- thin(loc.data = raw_data,
+#                         lat.col = "lat", long.col = "lon",
+#                         spec.col = "species",
+#                         thin.par = 0.000001, # km, if the data is too dense, remove one of the value
+#                         reps = 1,
+#                         locs.thinned.list.return = TRUE,
+#                         write.files = FALSE,
+#                         verbose = FALSE)
+
+# dim(thinned_dataset[[1]])[1]
+# dim(raw_data)[1] - dim(thinned_dataset[[1]])[1]
+
+# thinned_df <- thinned_dataset[[1]]
+# data_centers_sf <- st_as_sf(thinned_df, coords = c("Longitude", "Latitude"), crs = 4326) %>%
+#   st_transform(27700)
+
+
 # This is to get the actual raster values for each data center location
 # tidyr has a conflict with terra, so use :: to specify
 presence_vals <- terra::extract(presence, data_centers_sf, ID = FALSE)
@@ -31,7 +53,8 @@ presence_vals <- terra::extract(presence, data_centers_sf, ID = FALSE)
 valid_rows <- complete.cases(presence_vals)
 presence_clean <- presence_vals[valid_rows, , drop = FALSE]
 
-set.seed(123)
+
+
 bg_data <- spatSample(presence, size = 1000, method = "random", na.rm = TRUE, values = TRUE)
 model_data <- as.data.frame(rbind(presence_clean, bg_data))
 # The background point set to 0 because in entropy, presence points are 1, 0 represent random distributed points
@@ -63,6 +86,7 @@ tm_shape(suitability_map) +
     legend.frame = TRUE
   )
 
+
 # This is to find the best model params using grid search,
 # this is based on AIC score to find the best model,
 # you can find formula in utils
@@ -84,16 +108,15 @@ message(paste("Best model param RegMult:", grid_search_result$best_params[1],
               "Features:", grid_search_result$best_params[2]))
 
 # This is response curve
-png("Data/SuitibilityMap/model_importance.png", width = 2000, height = 2000, res = 300)
-plot(me_model, type = "logistic")
-dev.off()
-
-png("Data/SuitibilityMap/data_center_suitability.png", width = 2000, height = 2000, res = 300)
-plot(suitability_map, main = "Data Center Suitability")
-dev.off()
+# png("Data/SuitibilityMap/model_importance.png", width = 2000, height = 2000, res = 300)
+# plot(me_model, type = "logistic")
+# dev.off()
+#
+# png("Data/SuitibilityMap/data_center_suitability.png", width = 2000, height = 2000, res = 300)
+# plot(suitability_map, main = "Data Center Suitability")
+# dev.off()
 
 response.plot(me_model, names(model_data)[1], type = "logistic")
-
 report <- maxent_model_report(me_model, model_data, pa_vector = pa)
 
 tmap_mode("plot")

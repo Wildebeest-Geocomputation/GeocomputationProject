@@ -8,7 +8,7 @@
 #' @param suitability_type Type of suitability function
 #' @return A raster of suitability values
 calculate_distance <- function(
-    data, grid_size, type='network', save_name=FALSE, max_dist=10000, suitability_type='decrease', area_value=FALSE
+    data, grid_size, type='network', save_name=FALSE, max_dist=, suitability_type='decrease', area_value=FALSE
 ) {
 
   mask_sf <- st_as_sf(england_bng) %>%
