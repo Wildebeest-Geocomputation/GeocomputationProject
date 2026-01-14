@@ -30,4 +30,3 @@ plot(suitability_roads, main = "Major Road Network Proximity (England)")
 writeRaster(suitability_roads,
             "~/GeocomputationProject/Data/Tif/road_network.tif",
             overwrite=TRUE)
-
