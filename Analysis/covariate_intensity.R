@@ -10,7 +10,7 @@ print(selected_files)
 env_stack <- rast(selected_files)
 print(names(env_stack))
 # rename files for plot
- names(env_stack) <- c("Distance_to_Large_Employers", "Disance_to_Major_and_Strat_Roads")
+names(env_stack) <- c("Journey Time to Large Employers", "Distance to Major Roads")
 
 # Define the Window based on the Rasters (which are already in BNG)
 ex <- ext(env_stack)
@@ -63,7 +63,7 @@ for(i in 1:nlyr(env_stack)) {
 
   # Plot
   plot(rho_result,
-       main = names(env_stack)[i],
+       main = paste("Effect of", names(env_stack)[i], "on Intensity"),
        xlab = "Proximity (1 = closest, 0 = farthest)",
        ylab = "Data Center Intensity (λ per m²)",
        legend = FALSE,

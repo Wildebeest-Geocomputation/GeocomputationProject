@@ -14,6 +14,7 @@ tif_files <- list.files(path = "~/GeocomputationProject/Data/Tif",
 
 selected_files <- tif_files[c(1,2,3,4,5,7,8,10,11,12)]
 
+print(selected_files)
 presence <- rast(selected_files)%>%
   terra::classify(cbind(NA, 0))%>%
   terra::mask(england_bng)

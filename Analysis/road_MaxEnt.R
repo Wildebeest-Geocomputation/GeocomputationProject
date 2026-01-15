@@ -45,6 +45,24 @@ me_model <- maxnet(p = pa, data = model_data)
 suitability_map <- predict(presence, me_model, type = "logistic", na.rm = TRUE)
 plot(suitability_map)
 
+# updated maxent plot
+tm_shape(suitability_map) +
+  tm_raster(style = "cont", palette = "viridis", alpha = 0.9, title = "Suitability") +
+  tm_compass(position = c("right", "top")) +
+  tm_scale_bar(position = c("right", "bottom")) +
+  tm_grid(labels.size = 0.7, n.x = 5, n.y = 5,
+          lwd = 0.1,
+          alpha = 0.5,
+          labels.inside.frame = FALSE)+
+  tm_layout(
+    main.title.size = 1,
+    legend.outside = FALSE,
+    legend.position = c("left", "top"),
+    legend.bg.color = "white",
+    legend.bg.alpha = 0.5,
+    legend.frame = TRUE
+  )
+
 # This is to find the best model params using grid search,
 regmult_vals <- c(0.1, 0.5, 1)
 feature_classes <- c("l", "q", "h", "t", "lq")
