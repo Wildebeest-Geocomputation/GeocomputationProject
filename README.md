@@ -14,6 +14,9 @@
 5. Brownfield Site: [Brownfield site](https://www.planning.data.gov.uk/dataset/brownfield-land)
 6. Major and Strategic Road Networks: [Edina Digimap Platform - paid or academic access required](https://digimap.edina.ac.uk/)
 7. Journey Times to Employment Centres - jts0501.ods: [Gov.UK Statistical data set](https://www.gov.uk/government/statistical-data-sets/journey-time-statistics-data-tables-jts)
+8. Solar irradiation: https://globalsolaratlas.info/map?s=52.531021,-1.264906&m=site&c=52.531021,-1.264906,11
+9. Geology: https://www.bgs.ac.uk/datasets/bgs-geology-625k/
+10. Flood risk zones: https://environment.data.gov.uk/dataset/f3d63ec5-a21a-49fb-803a-0fa0fb7238b6
 
 ## Suitability Map
 | Suitability Map | Suitability > 0.5 |

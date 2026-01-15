@@ -3,8 +3,6 @@
 # Best AIC: 5264.12744728522
 # Best model param RegMult: 0.1 Features: lq
 
-
-
 library(sf)
 library(tmap)
 library(tools)
