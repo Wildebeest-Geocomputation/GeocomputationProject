@@ -1,24 +1,5 @@
 library(spdep)
 
-tif_files <- list.files(path = "./Data/Tif",
-                        pattern = "\\.tif$",
-                        full.names = TRUE,
-                        ignore.case = TRUE)
-
-presence <- rast(tif_files) %>%
-  terra::classify(cbind(NA, 0)) %>%
-  terra::mask(england_bng)
-
-names(presence) <- file_path_sans_ext(basename(tif_files))
-
-data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
-  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
-  st_transform(27700)
-
-presence_vals <- terra::extract(presence, data_centers_sf, ID = FALSE)
-valid_rows <- complete.cases(presence_vals)
-presence_clean <- presence_vals[valid_rows, , drop = FALSE]
-
 presence_coords <- as.data.frame(st_coordinates(data_centers_sf[valid_rows, ]))
 colnames(presence_coords) <- c("x", "y")
 
