@@ -3,11 +3,12 @@ library(corrplot)
 
 # Load all tif files
 tif_files <- list.files(path = "~/GeocomputationProject/Data/Tif", pattern = "\\.tif$", full.names = TRUE)
-env_stack <- rast(tif_files)
+selected_files <- tif_files[c(1,2,3,4,5,7,8,9,10,11,12)]
+env_stack <- rast(selected_files)
 
 # Rename the variables by their file names
 clean_names <- tools::file_path_sans_ext(basename(tif_files))
-names(env_stack) <- clean_names
+names(env_stack) <- c("Brownfield", "Drought Severity Index", "Journey Time to Large Employers", "Geology", "Flood Risk Areas", "Major Roads", "Solar Radiation", "Underground Cables", "Overhead Lines", "Substations", "Annual Average Air Temperature")
 
 # Extract a sample
 set.seed(123) # consistent results
@@ -26,5 +27,5 @@ corrplot(cor_matrix,
          number.cex = 0.7,       # Number size
          diag = FALSE,           # Hide the diagonal (1.0)
          col = COL2('RdBu', 10), # Red (Neg) to Blue (Pos) color scale
-         title = "Variable Correlation Matrix",
+         #title = "Variable Correlation Matrix",
          mar = c(0,0,1,0))       # Fix margins for title
