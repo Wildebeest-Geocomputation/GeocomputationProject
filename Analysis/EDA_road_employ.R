@@ -58,7 +58,7 @@ ggplot(df_dist_zoom, aes(x = distance_km)) +
   annotate("text", x = median_dist + 1, y = Inf,
            label = paste("Median:", round(median_dist, 1), "km"),
            vjust = 1.5, hjust = 0, color = "red", size = 4, fontface = "bold") +
-  labs(title = "Data Centre Distances to Major Roads (Detail View)",
+  labs(title = "Data Centre Distances to Major Roads (Zoomed In)",
        subtitle = "0-20 km Range - England",
        x = "Distance to Nearest Road (km)",
        y = "Count") +
