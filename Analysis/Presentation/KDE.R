@@ -90,18 +90,69 @@ window <- as.owin(st_geometry(england_sf_bng))
 pts <- st_coordinates(data_england_sf)
 p <- ppp(pts[,1], pts[,2], window = window)
 
-dens <- density(p, sigma = 10000)
-plot(dens, main = "Data Center Kernel Density")
+dens_ppl <- density(p, sigma = bw.ppl)
+plot(dens_ppl, main = "Data center KDE")
 
-library(magick)
-sigma_values <- seq(5000, 100000, by = 5000)
-img_list <- image_graph(width = 800, height = 800, res = 96)
+library(tmap)
+library(stars)
+library(sf)
 
-for (s in sigma_values) {
-  dens <- density(p, sigma = s)
-  plot(dens, main = paste("Data Center KDE | Sigma =", s, "m"))
-}
-dev.off()
+dens_stars <- st_as_stars(dens_ppl)
+st_crs(dens_stars) <- st_crs(england_sf_bng)
 
-animation <- image_animate(img_list, fps = 1)
-image_write(animation, "datacenter_density.gif")
+map_kde <- tm_basemap("CartoDB.Positron") + tm_shape(dens_stars) +
+  tm_raster(palette = "YlOrRd",
+            title = "Density",
+            style = "cont",
+            # opacity
+            alpha = 0.7
+            ) +
+  tm_shape(england_sf_bng) +
+  tm_borders(col = "black", lwd = 0.5) +
+  tm_layout(
+    main.title = "Kernel Density Estimation",
+    main.title.size = 1,
+    legend.outside = FALSE,
+    legend.position = c("left", "top"),
+    legend.bg.color = "white",
+    legend.bg.alpha = 0.6,
+    legend.frame = TRUE
+  ) +
+  tm_compass(position = c("right", "top")) +
+  tm_scale_bar(position = c("right", "bottom"))
+
+map_pts <- tm_basemap("CartoDB.Positron") + tm_shape(england_sf_bng) +
+  tm_borders(col = "black", lwd = 0.5) +
+  tm_shape(data_england_sf) +
+  tm_dots(col = "blue",
+          size = 0.05,
+          alpha = 0.6,
+          title = "Data Centers") +
+  tm_layout(main.title = "Original Point Data",
+            main.title.size = 1,
+            legend.outside = FALSE,
+            legend.bg.alpha = 0) +
+  tm_compass(position = c("right", "top")) +
+  tm_scale_bar(position = c("right", "bottom"))
+
+tmap_arrange(map_kde, map_pts, ncol = 2)
+
+
+# dens_diggle <- density(p, sigma = bw.diggle)
+# plot(dens_diggle, main = "Diggle Cross-validation (bw.diggle)")
+#
+# dens_scott <- density(p, sigma = bw.scott)
+# plot(dens_scott, main = "Scott's Rule (bw.scott)")
+#
+# library(magick)
+# sigma_values <- seq(5000, 100000, by = 5000)
+# img_list <- image_graph(width = 800, height = 800, res = 96)
+#
+# for (s in sigma_values) {
+#   dens <- density(p, sigma = s)
+#   plot(dens, main = paste("Data Center KDE | Sigma =", s, "m"))
+# }
+# dev.off()
+#
+# animation <- image_animate(img_list, fps = 1)
+# image_write(animation, "datacenter_density.gif")

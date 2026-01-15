@@ -113,7 +113,7 @@ temp_map <- tm_basemap("CartoDB.Positron") +
     breaks = c(0, 14)) +
   tm_facets(ncol = 2, free.scales = FALSE) +
   tm_compass(position = c("right", "top")) +
-  tm_scale_bar(position = c("right", "top")) +
+  tm_scale_bar(position = c("right", "bottom")) +
   tm_layout(
     panel.labels = c("1981-2000", "2001-2020"),
     legend.outside = FALSE,
@@ -178,7 +178,7 @@ drought_map <- tm_basemap("CartoDB.Positron") +
     breaks = c(0, 14)) +
   tm_facets(ncol = 2, free.scales = FALSE) +
   tm_compass(position = c("right", "top")) +
-  tm_scale_bar(position = c("right", "top")) +
+  tm_scale_bar(position = c("right", "bottom")) +
   tm_layout(
     panel.labels = c("1981-2000", "2001-2017"),
     legend.outside = FALSE,
