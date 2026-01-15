@@ -48,7 +48,7 @@ me_model <- maxnet(p = pa, data = model_data)
 # This is to find the best model params using grid search,
 # this is based on AIC score to find the best model,
 # you can find formula in utils
-regmult_vals <- c(0.05, 0.1, 0.5, 1)
+regmult_vals <- c(0.05, 0.1, 0.5, 1, 2)
 feature_classes <- c("l", "q", "h", "p", "t", "lq", "lh", "lp", "lt")
 grid_search_result <- grid_search(
   data = model_data,
