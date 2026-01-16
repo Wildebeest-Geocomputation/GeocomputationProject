@@ -28,11 +28,11 @@ grid_search <- function(
     data, pa, regmult_vals, feature_classes
     ) {
 
-  # l: linear
-  # q: quadratic
-  # h: hinge
-  # p: product
-  # t: threshold
+  # l: linear, original features
+  # q: quadratic, squared terms
+  # h: hinge, piecewise linear functions, allows for complex non-linear trends
+  # p: product, this is interaction and will do product for all pairs of features
+  # t: threshold, step functions, creates a binary split (0 or 1) at a specific cut-off value
 
   best_score <- Inf
   best_model <- NULL

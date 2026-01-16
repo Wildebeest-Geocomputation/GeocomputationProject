@@ -5,7 +5,6 @@ fuzzy_decrease <- function(x, max_dist) {
   return(val)
 }
 
-
 fuzzy_increase <- function(x, max_dist) {
   val <- x / max_dist
   val[val > 1] <- 1

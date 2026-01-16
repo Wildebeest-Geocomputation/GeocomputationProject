@@ -40,4 +40,6 @@ plot(suitability_points)
 
 # testing function from FullProcess
 source('utils/fullpreprocess.R')
-suitability_points <- calculate_distance(brownfield_england, grid_size=1000, type='point', save_name='./Data/Tif/brownfield', max_dist=5000, suitability_type='decrease')
+suitability_points <- calculate_distance(brownfield_england, grid_size=1000,
+                                         type='point', save_name='./Data/Tif/brownfield',
+                                         max_dist=5000, suitability_type='decrease')
