@@ -140,5 +140,3 @@ smap <- tm_basemap("CartoDB.Positron") +
 #           filename = paste0("Data/SuitibilityMap/suitability_map_", threshold, ".png"),
 #           width = 10, height = 8, units = "in", dpi = 300,
 #           device = ragg::agg_png)
-
-
