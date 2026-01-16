@@ -18,22 +18,21 @@ This report employs a Maximum Entropy (MaxEnt) model to conduct a multi-criteria
 
 ### Datasource
 
-| Variable Name | Dataset (Provider, Last Updated) | Spatial Resolution/Scale - Data type |
-| --- | --- | --- |
-| **[Existing Data Centres](https://www.datacentermap.com/united-kingdom/)** | Data Centre Map (n.d.) | Not Specified - Vector |
-| **[Major Roads](https://digimap.edina.ac.uk/)** | OS Open Roads (Ordnance Survey, Oct. 2025) | 1:25,000 - Vector |
-| **[Time to Large Employers](https://www.gov.uk/government/statistical-data-sets/journey-time-statistics-data-tables-jts)** | Journey Time Statistics database (Dept. of Transport, Nov. 2021) | Not Specified - Vector |
-| **[Solar Irradiation](https://globalsolaratlas.info/map?s=52.531021,-1.264906&m=site&c=52.531021,-1.264906,11)** | Solargis (Oct. 2019) | 30km - Raster |
-| **Soil Suitability** | BGS Geology 625K (British Geological Survey, n.d.) | 1:625,000 - Vector |
-| **[Flood Risk Areas](https://environment.data.gov.uk/dataset/f3d63ec5-a21a-49fb-803a-0fa0fb7238b6)** | Flood Risk Areas (Environment Agency, Dec. 2018) | Not Specified - Vector |
-| **[Brownfields](https://www.planning.data.gov.uk/dataset/brownfield-land)** | Brownfield land dataset (Gov.UK, Jan. 2026) | Not Specified - Vector |
-| **[Drought Severity Index](https://climate-themetoffice.hub.arcgis.com/datasets/b9e6f84d2ee943d0be17d93366bca8dc_0/explore?location=54.832243%2C-3.273213%2C6.19)** | Met Office Climate Data Portal (Mar. 2025) | 12km - Raster |
-| **[Annual Median Air Temperature](https://climate-themetoffice.hub.arcgis.com/datasets/TheMetOffice::annual-average-temperature-change-projections-local-authority-v1/about)** | Met Office Climate Data Portal (Jul. 2024) | Not Specified - Vector |
-| **Substations** | UK Power Networks (2025) | Not Specified - Vector |
-| **Underground Cables** | UK Power Networks (Nov 2025) | Not Specified - Vector |
-| **Overhead Lines** | UK Power Networks (Nov 2025) | Not Specified - Vector |
-| **Supplementary Data** | **Specific to Power Infrastructure Analysis** |  |
-| **Northeast and Yorkshire Areas Headroom Capacity** | Heat Map Data - Substation Areas (Northern Powergrid, Jan 2026) | Not Specified - Vector |
-| **Headroom Capacity** | DFES NSHR (UK Power Networks, Jan 2026) | Not Specified - Vector |
-| **Headroom Capacity** | Network Scenario Headroom Report (SSEN, Nov 2025) | Not Specified - Vector |
-| **Headroom Capacity** | NDP PRY BSP Headroom (Electricity North West, Jan 2025) | Not Specified - Vector |
+| Variable Name | Spatial Resolution/Scale - Data type |
+| --- | --- |
+| **[Existing Data Centres](https://www.datacentermap.com/united-kingdom/)** (Oct. 2025)| Not Specified - Vector |
+| **[Major Roads](https://digimap.edina.ac.uk/)** (Ordnance Survey, Oct. 2025) | 1:25,000 - Vector |
+| **[Time to Large Employers](https://www.gov.uk/government/statistical-data-sets/journey-time-statistics-data-tables-jts)**  (Dept. of Transport, Nov. 2021) | Not Specified - Vector |
+| **[Solar Irradiation](https://globalsolaratlas.info/map?s=52.531021,-1.264906&m=site&c=52.531021,-1.264906,11)** (Oct. 2019) | 30km - Raster |
+| **[Soil Suitability](https://www.bgs.ac.uk/datasets/bgs-geology-625k/)** (British Geological Survey, n.d.) | 1:625,000 - Vector |
+| **[Flood Risk Areas](https://environment.data.gov.uk/dataset/f3d63ec5-a21a-49fb-803a-0fa0fb7238b6)** (Environment Agency, Dec. 2018) | Not Specified - Vector |
+| **[Brownfields](https://www.planning.data.gov.uk/dataset/brownfield-land)** (Gov.UK, Jan. 2026) | Not Specified - Vector |
+| **[Drought Severity Index](https://climate-themetoffice.hub.arcgis.com/datasets/b9e6f84d2ee943d0be17d93366bca8dc_0/explore?location=54.832243%2C-3.273213%2C6.19)** (Mar. 2025) | 12km - Raster |
+| **[Annual Median Air Temperature](https://climate-themetoffice.hub.arcgis.com/datasets/TheMetOffice::annual-average-temperature-change-projections-local-authority-v1/about)** (Jul. 2024) | Not Specified - Vector |
+| **[Substations](https://ukpowernetworks.opendatasoft.com/explore/?disjunctive.theme&disjunctive.dublin-core.subject&sort=explore.popularity_score)** (2025) | Not Specified - Vector |
+| **[Underground Cables](https://ukpowernetworks.opendatasoft.com/explore/?disjunctive.theme&disjunctive.dublin-core.subject&sort=explore.popularity_score)** (Nov 2025) | Not Specified - Vector |
+| **[Overhead Lines]((https://ukpowernetworks.opendatasoft.com/explore/?disjunctive.theme&disjunctive.dublin-core.subject&sort=explore.popularity_score))** (Nov 2025) | Not Specified - Vector |
+| **[Northeast and Yorkshire Areas Headroom Capacity](https://northernpowergrid.opendatasoft.com/explore/dataset/heatmapsubstationareas/information/?disjunctive.name&disjunctive.type&disjunctive.pvoltage&disjunctive.local_authority&disjunctive.gen_voltage_constraint&disjunctive.dem_voltage_constraint&disjunctive.gsp_hm_constraint_manual&disjunctive.genconstraint&disjunctive.demconstraint&disjunctive.worst_case_constraint_gen_colour&disjunctive.worst_case_constraint_dem_colour&disjunctive.upstreamname)** (Northern Powergrid, Jan 2026) | Not Specified - Vector |
+| **[Headroom Capacity](https://ukpowernetworks.opendatasoft.com/explore/dataset/dfes-network-headroom-report/information/)** (UK Power Networks, Jan 2026) | Not Specified - Vector |
+| **[Headroom Capacity](https://www.ssen.co.uk/about-ssen/dso/publications-and-reports/)** (SSEN, Nov 2025) | Not Specified - Vector |
+| **[Headroom Capacity](https://electricitynorthwest.opendatasoft.com/explore/dataset/ndp-pry-bsp-headroom/information/)** (Electricity North West, Jan 2025) | Not Specified - Vector |
