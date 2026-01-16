@@ -78,20 +78,21 @@ cor_data_ext <- final_table %>%
     `Data Centers` = dc_count,
     `Brownfield` = brownfield_count,
     `Drought` = avg_DSI12_baseline,
-    `Temp` = `TAS Annual 2001-2020 median.x`
-  ) %>%
-  mutate(across(everything(), as.numeric)) %>%
-  na.omit()
+    `Temp` = `TAS Annual 2001-2020 median.x`,
+    # `NAME` = NAME.x
+  ) #%>%
+  # mutate(across(everything(), as.numeric)) %>%
+  # na.omit()
 
 ggpairs(cor_data_ext,
         title = "Scatter Plot Matrix with Correlation Coefficients",
         upper = list(continuous = wrap("cor", method = "spearman", size = 4, color = "black")),
         lower = list(continuous = wrap("smooth", alpha = 0.3, size = 0.1)))
 
-
 cor_data_ext%>%
   ggplot() +
   geom_point(aes(x = `Brownfield`, y = `Temp`, colour = `Data Centers`)) +
+  geom_text(aes(x = `Brownfield`, y = `Temp`, label = NAME), vjust = -1, size = 3) +
   scale_color_viridis_c() +
   theme_minimal()
 
@@ -401,3 +402,92 @@ ggplot(plot_data, aes(x = gwl_label)) +
     x = "Global Warming Level",
     y = "Drought Severity Index") +
   theme_minimal()
+
+
+data_centers_sf
+med_baseline_0017 <- median(drought_data$DSI12_baseline_00_17_median, na.rm = TRUE)
+ggplot(drought_data, aes(x = DSI12_baseline_00_17_median)) +
+  geom_histogram(binwidth = 0.3, fill = "lightblue", color = "darkblue", alpha = 0.7) +
+  geom_vline(xintercept = med_baseline_0017,
+             color = "red", linetype = "dashed", linewidth = 1.2) +
+  annotate("text", x = med_baseline_0017 + 1, y = Inf,
+           label = paste("Median:", round(med_baseline_0017, 1), "km"),
+           vjust = 1.5, hjust = 0, color = "red", size = 4, fontface = "bold") +
+  labs(title = "Data Centre Distances to Major Roads (Zoomed In)",
+       subtitle = "0-20 km Range - England",
+       x = "Distance to Nearest Road (km)",
+       y = "Count") +
+  scale_x_continuous(breaks = seq(0, 20, 2)) +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+################## Final part
+target_crs <- st_crs(drought_data)
+data_centers_wgs84 <- st_transform(data_centers_sf, crs = target_crs)
+boundary_temp_wgs84 <- st_transform(boundary_temp, crs = target_crs)
+final_combined_result <- data_centers_wgs84 %>%
+  st_join(drought_data, join = st_intersects) %>%
+  st_join(boundary_temp_wgs84, join = st_intersects)
+final_unique <- final_combined_result %>%
+  distinct(Name, Postcode, .keep_all = TRUE)
+
+med_baseline_0017 <- median(final_unique$DSI12_baseline_00_17_median, na.rm = TRUE)
+ggplot(final_unique, aes(x = DSI12_baseline_00_17_median)) +
+  geom_histogram(binwidth = 0.3, fill = "lightblue", color = "darkblue", alpha = 0.7) +
+  geom_vline(xintercept = med_baseline_0017,
+             color = "red", linetype = "dashed", linewidth = 1.2) +
+  annotate("text", x = med_baseline_0017 + 1, y = Inf,
+           label = paste("Median:", round(med_baseline_0017, 1), "km"),
+           vjust = 1.5, hjust = 0, color = "red", size = 4, fontface = "bold") +
+  labs(title = "Median Drought Severity Index  at Data Center Locations",
+       x = "Median Drought Severity Index",
+       y = "Count") +
+  scale_x_continuous(breaks = seq(0, 20, 2)) +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+med_temp_0120 <- median(final_unique$`TAS Annual 2001-2020 median.x`, na.rm = TRUE)
+ggplot(final_unique, aes(x = `TAS Annual 2001-2020 median.x`)) +
+  geom_histogram(binwidth = 0.2, fill = "lightblue", color = "darkblue", alpha = 0.7) +
+  geom_vline(xintercept = med_temp_0120,
+             color = "red", linetype = "dashed", linewidth = 1.2) +
+  annotate("text", x = med_temp_0120 + 0.2, y = Inf,
+           label = paste("Median:", round(med_temp_0120, 1), "km"),
+           vjust = 1.5, hjust = 0, color = "red", size = 4, fontface = "bold") +
+  labs(title = "Annual Median Temperature at Data Center Locations",
+       x = "Median Annual Temperature (°C)",
+       y = "Count") +
+  scale_x_continuous(breaks = seq(0, 20, 2)) +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+#################### plot
+library(tmap)
+library(tools)
+
+my_layout <- tm_layout(
+  main.title.size = 1.0,
+  main.title.position = "center",
+  legend.position = c("left", "top"),
+  legend.bg.color = "white",
+  legend.bg.alpha = 0.6,
+  legend.frame = TRUE,
+  frame = TRUE
+)
+names(presence) <- c('Annual Median Temperature', 'Brownfield', 'Drought Severity Index')
+map_list <- lapply(names(presence), function(layer_name) {
+  tm_shape(presence[[layer_name]]) +
+    tm_raster(style = "cont",
+              palette = "viridis",
+              alpha = 0.9,
+              title = "Value",
+              labels = c("Low", "", "", "", "", "High")) +
+    tm_layout(main.title = gsub("_", " ", layer_name)) +
+    my_layout +
+    tm_compass(position = c("right", "top"), size = 1.5) +
+    tm_scale_bar(position = c("right", "bottom"))
+})
+
+final_map <- tmap_arrange(map_list, ncol = 3)
+
+final_map

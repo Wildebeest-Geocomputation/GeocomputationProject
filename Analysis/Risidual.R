@@ -2,7 +2,6 @@ library(spdep)
 
 presence_coords <- as.data.frame(st_coordinates(data_centers_sf[valid_rows, ]))
 colnames(presence_coords) <- c("x", "y")
-
 set.seed(123)
 bg_sample <- spatSample(presence, size = 1000, method = "random", na.rm = TRUE, values = TRUE, xy = TRUE)
 
@@ -15,6 +14,7 @@ pa <- c(rep(1, nrow(presence_clean)), rep(0, nrow(bg_data)))
 pred_vals <- predict(me_model, model_data, type = "logistic")
 residuals <- pa - pred_vals
 
+# all_coords <- rbind(presence_coords, bg_coords)
 all_coords <- rbind(presence_coords, bg_coords)
 
 resid_df <- data.frame(
@@ -31,7 +31,7 @@ moran_result <- moran.test(resid_sf$resid, lw)
 
 print(moran_result)
 
-tmap_mode("plot")
+tmap_mode("view")
 tm_basemap("CartoDB.Positron") +
   tm_shape(england_bng) +
   tm_borders() +
@@ -44,9 +44,47 @@ tm_basemap("CartoDB.Positron") +
           style = "cont",
           palette = "RdBu",
           # size
-          size = 0.2,
+          size = 0.5,
           title = "Model Residuals")
 
+resid_sf%>%
+  # filter(resid < 0)%>%
+  ggplot() +
+  geom_histogram(aes(x = resid), bins = 30, fill = "blue", alpha = 0.7)
+
+england_polys <- st_as_sf(england_bng)
+
+if (st_crs(england_polys) != st_crs(resid_sf)) {
+  england_polys <- st_transform(england_polys, st_crs(resid_sf))
+}
+region_residuals <- england_polys %>%
+  st_join(resid_sf%>%filter(resid<0)) %>%
+  group_by(name) %>%
+  summarise(mean_resid = mean(resid, na.rm = TRUE))%>%
+  mutate(mean_resid = replace_na(mean_resid, 0))
+
+tmap_mode("plot")
+
+tm_basemap("CartoDB.Positron") +
+  tm_shape(region_residuals) +
+  tm_polygons("mean_resid", palette = "Reds", title = "Mean Residuals") +
+  tm_compass(position = c("right", "top")) +
+  tm_scale_bar(position = c("right", "bottom")) +
+  tm_grid(labels.size = 0.7, n.x = 5, n.y = 5,
+          lwd = 0.1,
+          alpha = 0.5,
+          labels.inside.frame = FALSE,
+          projection = 27700)+
+  tm_layout(
+    legend.title.size = 0.9,
+    main.title.size = 1,
+    legend.outside = FALSE,
+    legend.position = c("left", "top"),
+    legend.bg.color = "white",
+    legend.bg.alpha = 0.5,
+    legend.frame = TRUE,
+    legend.width = 9
+  )
 
 library(ncf)
 coords <- st_coordinates(resid_sf)
@@ -61,4 +99,7 @@ correlog_result <- correlog(x, y, z, increment=5000, resamp=100)
 # 550km started random
 plot(correlog_result)
 abline(h=0, lty=2, col="red")
+
+
+
 

@@ -100,16 +100,19 @@ library(sf)
 dens_stars <- st_as_stars(dens_ppl)
 st_crs(dens_stars) <- st_crs(england_sf_bng)
 
-map_kde <- tm_basemap("CartoDB.Positron") + tm_shape(dens_stars) +
+tmap_mode("plot")
+
+map_kde <- tm_basemap("CartoDB.Positron") +
+  tm_shape(dens_stars) +
   tm_raster(palette = "YlOrRd",
             title = "Density",
             style = "cont",
-            # opacity
             alpha = 0.7
-            ) +
-  tm_shape(england_sf_bng) +
+  ) +
+  tm_shape(england_sf_bng, is.master = TRUE) +
   tm_borders(col = "black", lwd = 0.5) +
   tm_layout(
+    legend.show = FALSE,
     main.title = "Kernel Density Estimation",
     main.title.size = 1,
     legend.outside = FALSE,
@@ -118,22 +121,33 @@ map_kde <- tm_basemap("CartoDB.Positron") + tm_shape(dens_stars) +
     legend.bg.alpha = 0.6,
     legend.frame = TRUE
   ) +
+  tm_grid(labels.size = 0.7, n.x = 5, n.y = 5,
+          lwd = 0.1,
+          alpha = 0.5,
+          labels.inside.frame = FALSE,
+          projection = 27700)+
   tm_compass(position = c("right", "top")) +
-  tm_scale_bar(position = c("right", "bottom"))
+  tm_scale_bar(position = c(0.65, 0.15))
 
-map_pts <- tm_basemap("CartoDB.Positron") + tm_shape(england_sf_bng) +
+map_pts <- tm_basemap("CartoDB.Positron") +
+  tm_shape(england_sf_bng, is.master = TRUE) +
   tm_borders(col = "black", lwd = 0.5) +
   tm_shape(data_england_sf) +
-  tm_dots(col = "blue",
-          size = 0.05,
+  tm_dots(col = "#47769e",
+          size = 0.2,
           alpha = 0.6,
           title = "Data Centers") +
   tm_layout(main.title = "Original Point Data",
             main.title.size = 1,
             legend.outside = FALSE,
             legend.bg.alpha = 0) +
+  tm_grid(labels.size = 0.7, n.x = 5, n.y = 5,
+          lwd = 0.1,
+          alpha = 0.5,
+          labels.inside.frame = FALSE,
+          projection = 27700)+
   tm_compass(position = c("right", "top")) +
-  tm_scale_bar(position = c("right", "bottom"))
+  tm_scale_bar(position = c(0.65, 0.15))
 
 tmap_arrange(map_kde, map_pts, ncol = 2)
 

@@ -23,10 +23,17 @@ presence <- rast(tif_files) %>%
   terra::mask(england_bng)
 
 names(presence) <- file_path_sans_ext(basename(tif_files))
-plot(presence)
+names(presence) <- c("Brownfields", "Drought_Severity_Index", "Time_to_Large_Employers", "Geology", "Flood_Risk_Areas", "Major_Roads",
+                      "Solar_Irradiation", "Underground_Cables", "Overhead_Lines", "Substations", "Annual_Median_Air_Temperature")
 
 data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
-  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326, remove = FALSE) %>% st_transform(27700) %>%
+  st_filter(st_as_sf(england_bng)) %>%
+  mutate(species = "DataCenter") %>%
+  thin(lat.col = "lat", long.col = "lon", spec.col = "species", thin.par = 0.000001, # in km
+       reps = 1, locs.thinned.list.return = TRUE, write.files = FALSE, verbose = FALSE)
+data_centers_sf <- data_centers_sf[[1]]%>%
+  st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326, remove = FALSE) %>%
   st_transform(27700)
 
 # This is to get the actual raster values for each data center location
@@ -36,7 +43,6 @@ presence_vals <- terra::extract(presence, data_centers_sf, ID = FALSE)
 # This is to not getting error for maxent, there ar na now is because I crop the raster, so some data center doesn't have value
 valid_rows <- complete.cases(presence_vals)
 presence_clean <- presence_vals[valid_rows, , drop = FALSE]
-
 
 bg_data <- spatSample(presence, size = 1000, method = "random", na.rm = TRUE, values = TRUE)
 model_data <- as.data.frame(rbind(presence_clean, bg_data))
@@ -62,7 +68,6 @@ grid_search_result$best_params
 print(me_model$betas)
 
 suitability_map <- predict(presence, me_model, type = "logistic", na.rm = TRUE)
-plot(suitability_map)
 
 crs(suitability_map) <- "EPSG:27700"
 # suitability_longlat <- terra::project(suitability_map, "EPSG:4326")
@@ -82,7 +87,8 @@ tm_shape(suitability_map) +
     legend.position = c("left", "top"),
     legend.bg.color = "white",
     legend.bg.alpha = 0.5,
-    legend.frame = TRUE
+    legend.frame = TRUE,
+    legend.width = 6
   )
 
 message(paste("best AIC:", grid_search_result$best_score))
@@ -90,11 +96,11 @@ message(paste("Best model param RegMult:", grid_search_result$best_params[1],
               "Features:", grid_search_result$best_params[2]))
 
 # This is response curve
-# png("Data/SuitibilityMap/model_importance.png", width = 2000, height = 2000, res = 300)
+png("Data/SuitibilityMap/model_importance.png", width = 2000, height = 2000, res = 300)
 plot(me_model, type = "logistic")
-# dev.off()
-#
-# png("Data/SuitibilityMap/data_center_suitability.png", width = 2000, height = 2000, res = 300)
+dev.off()
+
+png("Data/SuitibilityMap/data_center_suitability.png", width = 2000, height = 2000, res = 300)
 plot(suitability_map, main = "Data Center Suitability")
 # dev.off()
 
