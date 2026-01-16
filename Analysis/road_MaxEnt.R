@@ -18,7 +18,7 @@ selected_tifs <- c("./Data/Tif/employment_accessibility_england.tif",
 
 presence <- rast(selected_tifs)
 
-names(presence) <- file_path_sans_ext(basename(selected_tifs))
+names(presence) <- c("Time_to_Large_Employers", "Major_Roads")
 
 data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
@@ -84,7 +84,7 @@ plot(suitability_map, main = "Data Center Suitability by Connectivity Criteria")
 dev.off()
 
 # This is response curve
-png("Data/SuitibilityMap/road_model_response.png", width = 3500, height = 2000, res = 300)
+png("Data/SuitibilityMap/road_model_response_imp.png", width = 3500, height = 2000, res = 300)
 plot(me_model, type = "logistic")
 dev.off()
 
