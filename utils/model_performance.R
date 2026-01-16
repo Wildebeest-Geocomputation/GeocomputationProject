@@ -14,7 +14,7 @@ calculate_AICc <- function(model, p, data) {
   K <- length(model$betas)
   # number of occurrence localities
   n <- length(pres_preds)
-  # AIC: (2*K - 2*LL) + (2*K)*(K+1)/(n-K-1)
+  # AIC: 2 * K - 2 * LL
   AICc <- (2 * K - 2 * LL) + (2 * K * (K + 1)) / (n - K - 1)
   # if parameters exceed samples, return Inf
   if ((n - K - 1) <= 0) return(Inf)
@@ -91,18 +91,18 @@ maxent_model_report <- function(
 
   # Y (TPR, True Positive Rate / Sensitivity)
   # X (FPR, False Positive Rate)
-  png(paste0(base_dir, 'roc.png'), width = 2000, height = 2000, res = 300)
-  plot(roc_perf,
-       main = "ROC Curve",
-       ylab = "True Positive Rate (Sensitivity)",
-       xlab = "False Positive Rate")
-
-  abline(a = 0, b = 1, lty = 2, col = "gray")
-  points(fpr_05, tpr_05, col = "blue", pch = 19, cex = 1.5)
-  text(fpr_05, tpr_05, labels = paste0("Default (0.5)\nSens: ", round(tpr_05, 2)), pos = 4, col = "blue", cex = 0.8, offset = 1)
-  points(fpr_vals[best_idx], tpr_vals[best_idx], col = "red", pch = 19, cex = 1.5)
-  text(fpr_vals[best_idx], tpr_vals[best_idx], labels = paste0("Opt Cutoff\n", round(optimal_threshold, 3)), pos = 4, col = "red", cex = 0.8)
-  dev.off()
+  # png(paste0(base_dir, 'roc.png'), width = 2000, height = 2000, res = 300)
+  # plot(roc_perf,
+  #      main = "ROC Curve",
+  #      ylab = "True Positive Rate (Sensitivity)",
+  #      xlab = "False Positive Rate")
+  #
+  # abline(a = 0, b = 1, lty = 2, col = "gray")
+  # points(fpr_05, tpr_05, col = "blue", pch = 19, cex = 1.5)
+  # text(fpr_05, tpr_05, labels = paste0("Default (0.5)\nSens: ", round(tpr_05, 2)), pos = 4, col = "blue", cex = 0.8, offset = 1)
+  # points(fpr_vals[best_idx], tpr_vals[best_idx], col = "red", pch = 19, cex = 1.5)
+  # text(fpr_vals[best_idx], tpr_vals[best_idx], labels = paste0("Opt Cutoff\n", round(optimal_threshold, 3)), pos = 4, col = "red", cex = 0.8)
+  # dev.off()
 
   # confusion matrix
   library(caret)
@@ -123,7 +123,7 @@ maxent_model_report <- function(
   # Balanced Accuracy: (Sensitivity + Specificity) / 2
   confusionMatrix(pred_factor, actual_factor)
   # In our case, false positive means that we predict data centre is a good location when it is not.
-  saveRDS(cm, paste0(base_dir, 'model_confusion_matrix.rds'))
+  # saveRDS(cm, paste0(base_dir, 'model_confusion_matrix.rds'))
   # readRDS("./Data/Performance/model_confusion_matrix.rds")
 
   actual_factor <- factor(pa_vector, levels = c(0, 1))

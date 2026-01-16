@@ -411,7 +411,7 @@ ggplot(drought_data, aes(x = DSI12_baseline_00_17_median)) +
   geom_vline(xintercept = med_baseline_0017,
              color = "red", linetype = "dashed", linewidth = 1.2) +
   annotate("text", x = med_baseline_0017 + 1, y = Inf,
-           label = paste("Median:", round(med_baseline_0017, 1), "km"),
+           label = paste("Median:", round(med_baseline_0017, 1)),
            vjust = 1.5, hjust = 0, color = "red", size = 4, fontface = "bold") +
   labs(title = "Data Centre Distances to Major Roads (Zoomed In)",
        subtitle = "0-20 km Range - England",
@@ -437,7 +437,7 @@ ggplot(final_unique, aes(x = DSI12_baseline_00_17_median)) +
   geom_vline(xintercept = med_baseline_0017,
              color = "red", linetype = "dashed", linewidth = 1.2) +
   annotate("text", x = med_baseline_0017 + 1, y = Inf,
-           label = paste("Median:", round(med_baseline_0017, 1), "km"),
+           label = paste("Median:", round(med_baseline_0017, 1)),
            vjust = 1.5, hjust = 0, color = "red", size = 4, fontface = "bold") +
   labs(title = "Median Drought Severity Index  at Data Center Locations",
        x = "Median Drought Severity Index",
@@ -452,10 +452,10 @@ ggplot(final_unique, aes(x = `TAS Annual 2001-2020 median.x`)) +
   geom_vline(xintercept = med_temp_0120,
              color = "red", linetype = "dashed", linewidth = 1.2) +
   annotate("text", x = med_temp_0120 + 0.2, y = Inf,
-           label = paste("Median:", round(med_temp_0120, 1), "km"),
+           label = paste("Median:", round(med_temp_0120, 1)),
            vjust = 1.5, hjust = 0, color = "red", size = 4, fontface = "bold") +
   labs(title = "Annual Median Temperature at Data Center Locations",
-       x = "Median Annual Temperature (°C)",
+       x = "Median Annual Temperature",
        y = "Count") +
   scale_x_continuous(breaks = seq(0, 20, 2)) +
   theme_minimal() +
