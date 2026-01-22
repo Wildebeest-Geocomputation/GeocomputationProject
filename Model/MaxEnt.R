@@ -18,7 +18,7 @@ tif_files <- list.files(path = "./Data/Tif",
                         full.names = TRUE,
                         ignore.case = TRUE)
 
-selected_files <- tif_files[c(1,2,3,4,5,7,8,10,11,12)]
+selected_files <- tif_files#[c(1,2,3,4,5,7,8,10,11,12)]
 
 print(selected_files)
 presence <- rast(selected_files)%>%
@@ -26,9 +26,9 @@ presence <- rast(selected_files)%>%
   terra::mask(england_bng)
 
 names(presence) <- file_path_sans_ext(basename(tif_files))
-names(presence) <- c("Annual_Median_Air_Temperature", "Brownfields", "Drought_Severity_Index", "Time_to_Large_Employers",
-                     "Geology", "Flood_Risk_Areas", "Major_Roads",
-                     "Solar_Irradiation", "Underground_Cables", "Overhead_Lines", "Substations")
+# names(presence) <- c("Annual_Median_Air_Temperature", "Brownfields", "Drought_Severity_Index", "Time_to_Large_Employers",
+#                      "Geology", "Flood_Risk_Areas", "Major_Roads",
+#                      "Solar_Irradiation", "Underground_Cables", "Overhead_Lines", "Substations")
 
 data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326, remove = FALSE) %>% st_transform(27700) #%>%
