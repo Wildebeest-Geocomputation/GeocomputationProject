@@ -3,7 +3,7 @@ library(sf)
 library(readr)
 source('utils/boundaries.R')
 
-data_centers_sf <- read_csv("~/GeocomputationProject/Data/Example/UK_Data_Centers.csv") %>%
+data_centers_sf <- read_csv("~/GeocomputationProject/Data/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
   st_transform(27700)
 
