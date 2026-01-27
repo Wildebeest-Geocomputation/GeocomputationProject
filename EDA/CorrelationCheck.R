@@ -8,7 +8,11 @@ env_stack <- rast(selected_files)
 
 # Rename the variables by their file names
 clean_names <- tools::file_path_sans_ext(basename(tif_files))
+<<<<<<< HEAD:Analysis/correlation_check.R
+names(env_stack) <- c("Brownfields", "Drought Severity Index", "Time to Large Employers", "Geology", "Flood Risk Areas", "Major Roads", "Solar Irradiation", "Underground Cables", "Overhead Lines", "Substations", "Annual Median Air Temperature")
+=======
 # names(env_stack) <- c("Brownfield", "Drought Severity Index", "Journey Time to Large Employers", "Geology", "Flood Risk Areas", "Major Roads", "Solar Radiation", "Underground Cables", "Overhead Lines", "Substations", "Annual Average Air Temperature")
+>>>>>>> 7152954a24f2c4794a97028c7f41e28fd4f544af:EDA/CorrelationCheck.R
 
 # Extract a sample
 set.seed(123) # consistent results

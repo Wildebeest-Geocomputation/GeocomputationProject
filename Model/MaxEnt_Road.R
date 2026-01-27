@@ -18,7 +18,7 @@ selected_tifs <- c("./Data/Tif/employment_accessibility_england.tif",
 
 presence <- rast(selected_tifs)
 
-names(presence) <- file_path_sans_ext(basename(selected_tifs))
+names(presence) <- c("Time_to_Large_Employers", "Major_Roads")
 
 data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
@@ -44,13 +44,13 @@ suitability_map <- predict(presence, me_model, type = "logistic", na.rm = TRUE)
 plot(suitability_map)
 
 # updated maxent plot
-tm_shape(suitability_map) +
+final_map <- tm_shape(suitability_map) +
   tm_raster(style = "cont", palette = "viridis", alpha = 0.9, title = "Suitability") +
   tm_compass(position = c("right", "top")) +
   tm_scale_bar(position = c("right", "bottom")) +
   tm_grid(labels.size = 0.7, n.x = 5, n.y = 5,
           lwd = 0.1,
-          alpha = 0.5,
+          alpha = 0.1,
           labels.inside.frame = FALSE)+
   tm_layout(
     main.title.size = 1,
@@ -60,6 +60,7 @@ tm_shape(suitability_map) +
     legend.bg.alpha = 0.5,
     legend.frame = TRUE
   )
+tmap_save(final_map, filename = "~/GeocomputationProject/Data/SuitibilityMap/road_data_center_suitability.png", width = 10, height = 8)
 
 # This is to find the best model params using grid search,
 regmult_vals <- c(0.1, 0.5, 1)
@@ -83,7 +84,7 @@ plot(suitability_map, main = "Data Center Suitability by Connectivity Criteria")
 dev.off()
 
 # This is response curve
-png("Data/SuitibilityMap/road_model_importance.png", width = 2000, height = 2000, res = 300)
+png("Data/SuitibilityMap/road_model_response_imp.png", width = 3500, height = 2000, res = 300)
 plot(me_model, type = "logistic")
 dev.off()
 
