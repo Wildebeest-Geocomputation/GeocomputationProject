@@ -5,6 +5,9 @@ library(osmdata)
 library(rgeoboundaries)
 library(leaflet)
 library(tmap)
+source('utils/boundaries.R')
+source('utils/fullpreprocess.R')
+source('utils/map_func.R')
 
 # reed first sheet
 Residential <- read_xlsx("PData/Individual/landvalue.xlsx", sheet="Residential")%>%filter(!is.na(`...2`))
@@ -19,9 +22,7 @@ Residential <- Residential[-1, ]
 colnames(Industrial) <- Industrial[1, ]
 Industrial <- Industrial[-1, ]
 
-
 uk_l2 <- gb_adm2("United Kingdom")
-
 
 place_name <- "Amber Valley"
 
@@ -84,7 +85,6 @@ ggplot() +
   geom_sf(aes(fill = `£/ha`)) +
   theme_minimal() +
   ggtitle("Industrial Regions with Geometry")
-
 
 ## https://www.data.gov.uk/dataset/4e39e20e-2be5-4dd1-a205-62aaeb6a86e1/land-cover-map-2024-uk-land-cover-statistics
 
@@ -160,10 +160,10 @@ crime_data_sf <- st_as_sf(clean_data, coords = c("Longitude", "Latitude"),crs = 
 tmap_mode("plot")
 crime_data_sf%>%
   filter(Crime.type == 'Drugs')%>%
-tm_shape() +
-tm_basemap(providers$Esri.WorldTopoMap)+
+  tm_shape() +
   tm_dots(col = "Crime.type", border.col = NA, alpha = 1, size = 0.1, palette = "Dark2",
-          col.legend = tm_legend(title = "Prefix"))
+          col.legend = tm_legend(title = "Prefix"))+
+  add_map_decorations()
 
 ## join
 stock_of_properties <- read_csv('./PData/Individual/Land/SOP_SCAT_LA_rv_500000_plus.csv')
@@ -186,8 +186,8 @@ filter_sop <- filter_sop %>%
   ))
 filter_sop%>%
   tm_shape() +
-  tm_basemap(providers$Esri.WorldTopoMap)+
-  tm_polygons(col = 'value', border.col = NA, alpha = 0.7, palette = "YlGnBu")
+  tm_polygons(col = 'value', border.col = NA, alpha = 0.7, palette = "YlGnBu")+
+  add_map_decorations()
 
 filter_sop$value%>%unique()
 
@@ -206,19 +206,11 @@ tm_shape(map_data) +
               palette = "YlGnBu",
               title = "Employment rate (%)")
 
-# Economic for model
-source('utils/boundaries.R')
-
-# This is from Economic.R
-# Large Distribution Warehouses
-plot(filter_sop)
-
 ldw_england <- filter_sop%>%
   st_as_sf(wkt = 'geometry', crs = 4326)%>%
   st_transform(crs = 27700)%>%
   st_filter(st_as_sf(england_bng))
 
-source('utils/fullpreprocess.R')
 suitability_points <- calculate_distance(ldw_england, grid_size=1000, type='area', max_dist=5000, suitability_type='increase')
 
 

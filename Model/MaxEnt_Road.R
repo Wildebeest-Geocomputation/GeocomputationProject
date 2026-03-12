@@ -11,6 +11,8 @@ library(maxnet)
 library(tidyverse)
 source('utils/boundaries.R')
 source('utils/model_performance.R')
+source('utils/map_func.R')
+set.seed(123)
 
 # Define the paths for the two specific files
 selected_tifs <- c("./Data/Tif/employment_accessibility_england.tif",
@@ -20,7 +22,7 @@ presence <- rast(selected_tifs)
 
 names(presence) <- c("Time_to_Large_Employers", "Major_Roads")
 
-data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
+data_centers_sf <- read_csv("Data/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
   st_transform(27700)
 
@@ -32,7 +34,6 @@ presence_vals <- terra::extract(presence, data_centers_sf, ID = FALSE)
 valid_rows <- complete.cases(presence_vals)
 presence_clean <- presence_vals[valid_rows, , drop = FALSE]
 
-set.seed(123)
 bg_data <- spatSample(presence, size = 1000, method = "random", na.rm = TRUE, values = TRUE)
 model_data <- as.data.frame(rbind(presence_clean, bg_data))
 
@@ -46,20 +47,7 @@ plot(suitability_map)
 # updated maxent plot
 final_map <- tm_shape(suitability_map) +
   tm_raster(style = "cont", palette = "viridis", alpha = 0.9, title = "Suitability") +
-  tm_compass(position = c("right", "top")) +
-  tm_scale_bar(position = c("right", "bottom")) +
-  tm_grid(labels.size = 0.7, n.x = 5, n.y = 5,
-          lwd = 0.1,
-          alpha = 0.1,
-          labels.inside.frame = FALSE)+
-  tm_layout(
-    main.title.size = 1,
-    legend.outside = FALSE,
-    legend.position = c("left", "top"),
-    legend.bg.color = "white",
-    legend.bg.alpha = 0.5,
-    legend.frame = TRUE
-  )
+  add_map_decorations()
 tmap_save(final_map, filename = "~/GeocomputationProject/Data/SuitibilityMap/road_data_center_suitability.png", width = 10, height = 8)
 
 # This is to find the best model params using grid search,

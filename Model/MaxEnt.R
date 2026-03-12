@@ -6,6 +6,7 @@ library(maxnet)
 library(tidyverse)
 source('utils/boundaries.R')
 source('utils/model_performance.R')
+source('utils/map_func.R')
 library(spThin)
 set.seed(123)
 
@@ -30,7 +31,7 @@ names(presence) <- file_path_sans_ext(basename(tif_files))
 #                      "Geology", "Flood_Risk_Areas", "Major_Roads",
 #                      "Solar_Irradiation", "Underground_Cables", "Overhead_Lines", "Substations")
 
-data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
+data_centers_sf <- read_csv("Data/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326, remove = FALSE) %>% st_transform(27700) #%>%
   # st_filter(st_as_sf(england_bng)) %>%
   # mutate(species = "DataCenter") %>%
@@ -79,21 +80,7 @@ crs(suitability_map) <- "EPSG:27700"
 tmap_mode("plot")
 tm_shape(suitability_map) +
   tm_raster(style = "cont", palette = "viridis", alpha = 0.9, title = "Suitability") +
-  tm_compass(position = c("right", "top")) +
-  tm_scale_bar(position = c("right", "bottom")) +
-  tm_grid(labels.size = 0.7, n.x = 5, n.y = 5,
-          lwd = 0.1,
-          alpha = 0.5,
-          labels.inside.frame = FALSE)+
-  tm_layout(
-    main.title.size = 1,
-    legend.outside = FALSE,
-    legend.position = c("left", "top"),
-    legend.bg.color = "white",
-    legend.bg.alpha = 0.5,
-    legend.frame = TRUE,
-    legend.width = 6
-  )
+  add_map_decorations()
 
 message(paste("best AIC:", grid_search_result$best_score))
 message(paste("Best model param RegMult:", grid_search_result$best_params[1],
@@ -115,26 +102,11 @@ tmap_mode("plot")
 suitability_map <- predict(presence, me_model, type = "logistic", na.rm = TRUE)
 threshold <- report$youden$threshold
 suitability_map[suitability_map <= threshold] <- NA
-smap <- tm_basemap("CartoDB.Positron") +
-  tm_compass(position = c("right", "top")) +
-  tm_scale_bar(position = c("right", "bottom")) +
-  tm_grid(labels.size = 0.7, n.x = 5, n.y = 5,
-          lwd = 0.1,
-          alpha = 0.5,
-          labels.inside.frame = FALSE)+
-  tm_shape(suitability_map) +
+smap <- tm_shape(suitability_map) +
   tm_raster(title = "Suitability", palette = "viridis", alpha = 0.7)+
   tm_shape(england_bng) +
   tm_borders(col = "black", alpha = 0.3, lwd = 0.2) +
-  tm_layout(
-    main.title.size = 1,
-    legend.outside = FALSE,
-    legend.position = c("left", "top"),
-    legend.bg.color = "white",
-    legend.bg.alpha = 0.5,
-    legend.frame = TRUE,
-    legend.width = 6
-  )
+  add_map_decorations()
 
 # tmap_save(smap,
 #           filename = paste0("Data/SuitibilityMap/suitability_map_", threshold, ".png"),

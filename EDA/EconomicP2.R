@@ -1,8 +1,9 @@
-source('utils/boundaries.R')
-library(tidyverse)
 library(sf)
-england_bng
-data_centers_sf <- read_csv("Data/Example/UK_Data_Centers.csv") %>%
+library(tidyverse)
+source('utils/boundaries.R')
+source('utils/fullpreprocess.R')
+source('utils/map_func.R')
+data_centers_sf <- read_csv("Data/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
   st_transform(27700)
 
@@ -32,7 +33,6 @@ brownfield <- read_csv('./PData/Individual/brownfield-land.csv')%>%
 final_table <- final_table %>%
   mutate(brownfield_count = lengths(st_intersects(., brownfield)))
 
-
 file_path <- './PData/Individual/TempWater/Drought_Severity_Index_12_Month_Accumulations_1364492214063738842.gpkg'
 st_layers(file_path)
 drought_data <- st_read(file_path)%>%
@@ -58,7 +58,6 @@ final_df <- final_table %>%
   )
 final_df[is.na(final_df)] <- 0
 
-
 library(corrplot)
 
 cor_data <- final_table %>%
@@ -66,8 +65,7 @@ cor_data <- final_table %>%
   dplyr::select(
     `Data Centers` = dc_count,
     `Brownfield Sites` = brownfield_count,
-    `Drought Index (DSI12)` = avg_DSI12_baseline
-  ) %>%
+    `Drought Index (DSI12)` = avg_DSI12_baseline) %>%
   mutate(across(everything(), as.numeric)) %>%
   na.omit()
 
@@ -103,8 +101,7 @@ temp <- st_read(file_path)
 temp_bng <- temp %>% filter(str_starts(CODE, "E"))
 
 tmap_mode("plot")
-temp_map <- tm_basemap("CartoDB.Positron") +
-  tm_shape(temp_bng) +
+temp_map <- tm_shape(temp_bng) +
   tm_polygons(
     c('tas_annual_8100_median', 'tas_annual_0120_median'),
     title = 'DSI',
@@ -113,23 +110,14 @@ temp_map <- tm_basemap("CartoDB.Positron") +
     style = "cont",
     breaks = c(0, 14)) +
   tm_facets(ncol = 2, free.scales = FALSE) +
-  tm_compass(position = c("right", "top")) +
-  tm_scale_bar(position = c("right", "bottom")) +
-  tm_layout(
-    panel.labels = c("1981-2000", "2001-2020"),
-    legend.outside = FALSE,
-    legend.position = c("left", "top"),
-    legend.bg.color = "white",
-    legend.bg.alpha = 0.6,
-    legend.frame = TRUE,
-    main.title = 'Median Air Temperature (°C)')
+  add_map_decorations()
 
 tmap_save(temp_map, filename = "Data/Layout/map air temperature.png",
           width = 10, height = 8, units = "in", dpi = 300,
           device = ragg::agg_png)
 
 ############################# Wind Speed
-file_path <- '/Users/wangqiqian/Desktop/UCL/SAG/PData/Individual/TempWater/Seasonal_Average_Wind_Speed_Projections_5km_-5913176971528534346.gpkg'
+file_path <- './PData/Individual/TempWater/Seasonal_Average_Wind_Speed_Projections_5km_-5913176971528534346.gpkg'
 st_layers(file_path)
 wind_bng <- st_read(file_path)
 england_bng <- england_bng%>%
@@ -137,14 +125,13 @@ england_bng <- england_bng%>%
   st_transform(st_crs(wind_bng))
 wind_bng <- st_intersection(wind_bng, england_bng)
 
-tmap_mode("view")
 tmap_mode("plot")
 wind_map <- tm_shape(wind_bng) +
   tm_polygons(
     c("ws_spring_baseline_median", "ws_summer_baseline_median", "ws_autumn_baseline_median", "ws_winter_baseline_median"),
     border.alpha = 0, palette = "YlOrRd", style = "cont",
     breaks = c(0, 14), title = "Wind Speed (m/s)") +
-  tm_facets(nrow = 2, ncol = 2, free.scales = FALSE) +
+  tm_facets(nrow = 2, ncol = 2, free.scales = FALSE)
   tm_layout(
     panel.labels = c("Spring", "Summer", "Autumn", "Winter"),
     legend.outside = TRUE,
@@ -168,8 +155,7 @@ england_bng <- england_bng%>%
 drought_data <- st_intersection(drought_data, england_bng)
 
 tmap_mode("plot")
-drought_map <- tm_basemap("CartoDB.Positron") +
-  tm_shape(drought_data) +
+drought_map <- tm_shape(drought_data) +
   tm_polygons(
     c('DSI12_baseline_81_00_median', 'DSI12_baseline_00_17_median'),
     title = 'DSI',
@@ -178,8 +164,6 @@ drought_map <- tm_basemap("CartoDB.Positron") +
     style = "cont",
     breaks = c(0, 14)) +
   tm_facets(ncol = 2, free.scales = FALSE) +
-  tm_compass(position = c("right", "top")) +
-  tm_scale_bar(position = c("right", "bottom")) +
   tm_layout(
     panel.labels = c("1981-2000", "2001-2017"),
     legend.outside = FALSE,
@@ -187,7 +171,8 @@ drought_map <- tm_basemap("CartoDB.Positron") +
     legend.bg.color = "white",
     legend.bg.alpha = 0.6,
     legend.frame = TRUE,
-    main.title = "Drought Severity Index (12-Month Accumulations)")
+    main.title = "Drought Severity Index (12-Month Accumulations)")+
+  small_decorations()
 
 tmap_save(drought_map, filename = "Data/Layout/map dsi.png",
           width = 10, height = 8, units = "in", dpi = 300,
@@ -210,8 +195,7 @@ water_plot <- water_simple %>%
 colors <- c("#1a9641","#a6d96a", "#ffffbf", "#fdae61", "#d7191c", "#bababa")
 
 tmap_mode("plot")
-water_map <- tm_basemap("CartoDB.Positron") +
-  tm_shape(water_plot) +
+water_map <- tm_shape(water_plot) +
   tm_polygons(col = "resavail",
               style = "cat",
               palette = colors,
@@ -221,7 +205,8 @@ water_map <- tm_basemap("CartoDB.Positron") +
               border.alpha = 0)+
   tm_layout(legend.position = c("right", "top"),
             legend.title.size = 0.7,
-            legend.text.size = 0.55)
+            legend.text.size = 0.55)+
+  small_decorations()
 
 tmap_save(water_map, filename = "Data/Layout/map water resource.png",
           width = 10, height = 8, units = "in", dpi = 300,
@@ -329,7 +314,6 @@ wind_bng%>%
 # It measures the severity of a drought, not the frequency.
 
 # Projections is based on 2000-2020
-
 med_baseline_8100 <- median(drought_data$DSI12_baseline_81_00_median, na.rm = TRUE)
 med_baseline_0017 <- median(drought_data$DSI12_baseline_00_17_median, na.rm = TRUE)
 drought_data%>%
@@ -460,34 +444,3 @@ ggplot(final_unique, aes(x = `TAS Annual 2001-2020 median.x`)) +
   scale_x_continuous(breaks = seq(0, 20, 2)) +
   theme_minimal() +
   theme(plot.title = element_text(size = 14, face = "bold"))
-
-#################### plot
-library(tmap)
-library(tools)
-
-my_layout <- tm_layout(
-  main.title.size = 1.0,
-  main.title.position = "center",
-  legend.position = c("left", "top"),
-  legend.bg.color = "white",
-  legend.bg.alpha = 0.6,
-  legend.frame = TRUE,
-  frame = TRUE
-)
-names(presence) <- c('Annual Median Temperature', 'Brownfield', 'Drought Severity Index')
-map_list <- lapply(names(presence), function(layer_name) {
-  tm_shape(presence[[layer_name]]) +
-    tm_raster(style = "cont",
-              palette = "viridis",
-              alpha = 0.9,
-              title = "Value",
-              labels = c("Low", "", "", "", "", "High")) +
-    tm_layout(main.title = gsub("_", " ", layer_name)) +
-    my_layout +
-    tm_compass(position = c("right", "top"), size = 1.5) +
-    tm_scale_bar(position = c("right", "bottom"))
-})
-
-final_map <- tmap_arrange(map_list, ncol = 3)
-
-final_map

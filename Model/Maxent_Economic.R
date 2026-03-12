@@ -3,6 +3,7 @@ library(terra)
 library(readr)
 library(maxnet)
 library(tools)
+set.seed(123)
 
 # Read .tif from Rasters folder
 tif_files <- c(
@@ -33,7 +34,6 @@ bg_data <- spatSample(presence, size = 500, method = "random", na.rm = TRUE, val
 model_data <- as.data.frame(rbind(presence_clean, bg_data))
 
 # Create a presence/absence vector
-set.seed(123)
 pa <- c(rep(1, nrow(presence_clean)), rep(0, nrow(bg_data)))
 
 # MaxEnt

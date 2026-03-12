@@ -1,8 +1,9 @@
 library(spdep)
+source('utils/map_func.R')
+set.seed(123)
 
 presence_coords <- as.data.frame(st_coordinates(data_centers_sf[valid_rows, ]))
 colnames(presence_coords) <- c("x", "y")
-set.seed(123)
 bg_sample <- spatSample(presence, size = 1000, method = "random", na.rm = TRUE, values = TRUE, xy = TRUE)
 
 bg_coords <- bg_sample[, c("x", "y")]
@@ -32,20 +33,18 @@ moran_result <- moran.test(resid_sf$resid, lw)
 print(moran_result)
 
 tmap_mode("view")
-tm_basemap("CartoDB.Positron") +
-  tm_shape(england_bng) +
+tm_shape(england_bng) +
   tm_borders() +
   # tm_shape(resid_sf%>%filter(resid >0)) +
   tm_shape(resid_sf) +
-  tm_compass()+
-  tm_scale_bar()+
   tm_dots(col = "resid",
           midpoint = 0,
           style = "cont",
           palette = "RdBu",
           # size
           size = 0.5,
-          title = "Model Residuals")
+          title = "Model Residuals")+
+  add_map_decorations()
 
 resid_sf%>%
   # filter(resid < 0)%>%
@@ -65,26 +64,14 @@ region_residuals <- england_polys %>%
 
 tmap_mode("plot")
 
-tm_basemap("CartoDB.Positron") +
-  tm_shape(region_residuals) +
+tm_shape(region_residuals) +
   tm_polygons("mean_resid", palette = "Reds", title = "Mean Residuals") +
-  tm_compass(position = c("right", "top")) +
-  tm_scale_bar(position = c("right", "bottom")) +
   tm_grid(labels.size = 0.7, n.x = 5, n.y = 5,
           lwd = 0.1,
           alpha = 0.5,
           labels.inside.frame = FALSE,
           projection = 27700)+
-  tm_layout(
-    legend.title.size = 0.9,
-    main.title.size = 1,
-    legend.outside = FALSE,
-    legend.position = c("left", "top"),
-    legend.bg.color = "white",
-    legend.bg.alpha = 0.5,
-    legend.frame = TRUE,
-    legend.width = 9
-  )
+  add_map_decorations()
 
 library(ncf)
 coords <- st_coordinates(resid_sf)

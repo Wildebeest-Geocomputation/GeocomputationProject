@@ -4,6 +4,7 @@ library(terra)
 library(tidyverse)
 source('utils/fuzzy.R')
 source('utils/boundaries.R')
+source('utils/map_func.R')
 
 r_grid <- rast(ext(england_bng), resolution = 1000, crs = crs(england_bng))
 
@@ -24,25 +25,6 @@ england_sf$brownfield_count <- lengths(st_intersects(england_sf, brownfield_sf))
 tm_basemap("CartoDB.Positron") +
   tm_shape(england_sf) +
   tm_polygons("brownfield_count", palette = "Reds", title = "Brownfield Sites Count")
-
-tm_basemap("CartoDB.Positron") +
-tm_shape(england_sf) +
-  tm_polygons("brownfield_count", palette = "Reds", title = "Brownfield Sites Count") +
-  tm_compass(position = c("right", "top")) +
-  tm_scale_bar(position = c("right", "bottom")) +
-  tm_grid(labels.size = 0.7, n.x = 5, n.y = 5,
-          lwd = 0.1,
-          alpha = 0.5,
-          labels.inside.frame = FALSE,
-          projection = 27700)+
-  tm_layout(
-    main.title.size = 1,
-    legend.outside = FALSE,
-    legend.position = c("left", "top"),
-    legend.bg.color = "white",
-    legend.bg.alpha = 0.5,
-    legend.frame = TRUE
-  )
 
 tmap_mode("plot")
 tm_basemap("CartoDB.Positron") +
