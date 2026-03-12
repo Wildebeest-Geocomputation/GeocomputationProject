@@ -1,11 +1,11 @@
 library(sf)
 library(terra)
-source('C:/Temp_R/fuzzy.R')
-source('C:/Temp_R/boundaries.R')
+source('./utils/fuzzy.R')
+source('./utils/boundaries.R')
 
 # Load geology data
 # SAND AND GRAVEL and SAND provide good drainage and stable foundations
-eng_geology <- st_read("C:/Temp_R/geology_best.shp")
+eng_geology <- st_read("./MaxEnt_data/geology_best.shp")
 
 # Make the empty raster
 grid_res <- 1000 # 1km
@@ -27,12 +27,12 @@ plot(suitability_geology, main = "Soil suitability proximity (England)")
 
 # Save the raster for MaxEnt
 writeRaster(suitability_geology,
-            "C:/Temp_R/geology_suitability(1).tif",
+            "./Data/Tif/geology_suitability(1).tif",
             overwrite=TRUE)
 #_____________________________________________________________________________#
 
 # Load flood risk data
-eng_flood_risk <- st_read("C:/Temp_R/Flood_Risk_Areas.shp")
+eng_flood_risk <- st_read("./Data/Tif/Flood_Risk_Areas.shp")
 
 # Make the empty raster
 grid_res <- 1000 # 1km
@@ -54,13 +54,13 @@ plot(suitability_flood, main = "Areas outside flood‑risk zones (England)")
 
 # Save the raster for MaxEnt
 writeRaster(suitability_flood,
-            "C:/Temp_R/non_floodrisk_suitability(1).tif",
+            "./Data/Tif/non_floodrisk_suitability(1).tif",
             overwrite=TRUE)
 
 #____________________________________________________________________________#
 
 # Load solar irradiation data (already a raster)
-eng_solar <- rast("C:/Temp_R/solar_irradiation_england.tif")
+eng_solar <- rast("./MaxEnt_data/solar_irradiation_england.tif")
 
 # Reproject solar data to match england_bng CRS
 eng_solar_projected <- project(eng_solar, crs(england_bng), method = "bilinear")
@@ -94,5 +94,5 @@ plot(suitability_solar, main = "Solar Irradiation Proximity Suitability (England
 
 # Save the raster for MaxEnt
 writeRaster(suitability_solar,
-            "C:/Temp_R/solar_suitability(1).tif",
+            "./Data/Tif/solar_suitability(1).tif",
             overwrite=TRUE)

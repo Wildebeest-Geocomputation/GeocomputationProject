@@ -6,6 +6,7 @@
 #' @param save_name File name to save the output tif, if FALSE not saving
 #' @param max_dist Maximum distance for fuzzy decrease function
 #' @param suitability_type Type of suitability function
+#' @param area_value If type is 'area', the field name of the area value
 #' @return A raster of suitability values
 calculate_distance <- function(
     data, grid_size, type='network', save_name=FALSE, max_dist=5000, suitability_type='decrease', area_value=FALSE
@@ -48,7 +49,7 @@ calculate_distance <- function(
     if (suitability_type == 'decrease') {
       suitability <- app(dist_grid, fun = function(x) fuzzy_decrease(x, max_dist = max_dist))
     } else if (suitability_type == 'increase') {
-      suitability <- app(dist_grid, fun = function(x) fuzzy_increase(x, min_dist = max_dist))
+      suitability <- app(dist_grid, fun = function(x) fuzzy_increase(x, max_dist = max_dist))
     } else {
       stop("suitability_type must be either 'decrease' or 'increase'")
     }

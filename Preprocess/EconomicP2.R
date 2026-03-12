@@ -31,13 +31,6 @@ cols <- c("TAS Annual 1981-2000 lower", "TAS Annual 1981-2000 median",
 "TAS Annual 4°C upper")
 colnames(temp)[4:27] <- cols
 
-for (i in c('TAS Annual 2001-2020 median')){
-  suitability_points <- calculate_distance(
-    temp_bng, grid_size=1000, type='area', #save_name=paste('./Data/Tif/', i, sep = ''),
-    # save_name='./Data/Tif/Annual_Median_Temperature_2001_2020',
-    max_dist=10000, suitability_type='decrease', area_value = i)
-}
-
 # Wind Speed Data
 # The dataset is derived from projections of seasonal mean wind speeds from UKCP18
 # which are averaged to produce values for the 1981-2000 baseline and two warming levels:
@@ -85,14 +78,6 @@ england_bng <- england_bng%>%
   st_transform(st_crs(drought_data))
 drought_data <- st_intersection(drought_data, england_bng)
 
-for (i in c('DSI12_baseline_00_17_median')){
-  choose <- i
-  suitability_points <- calculate_distance(
-    drought_data, grid_size=1000, type='area', #save_name=paste('./Data/Tif/', choose, sep = ''),
-    save_name = './Data/Tif/Drought_Median_2000_2017',
-    max_dist=10000, suitability_type='decrease', area_value = choose)
-}
-
 # water
 # https://environment.data.gov.uk/dataset/62514eb5-e9d5-4d96-8b73-a40c5b702d43
 file_path <- './PData/Individual/TempWater/Water_Resource_Availability_and_Abstraction_Reliability_Cycle_2.gpkg'
@@ -107,4 +92,4 @@ water_simple <- st_transform(water_simple, 4326)
 choose <- 'resavail'
 calculate_distance(
   water_simple, grid_size=1000, type='area', save_name=paste('./Data/Tif/', choose, sep = ''),
-  max_dist=5000, suitability_type='decrease', area_value = choose)
+  max_dist=5000, suitability_type='decrease', area_value = 'resavail')

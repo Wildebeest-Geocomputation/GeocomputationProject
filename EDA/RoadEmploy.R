@@ -49,20 +49,25 @@ ggplot(df_dist, aes(x = distance_km)) +
   theme(plot.title = element_text(size = 14, face = "bold"))
 
 # Zoomed 0-20km histogram - create a proper filtered dataframe first
-df_dist_zoom <- df_dist[df_dist$distance_km <= 20, , drop = FALSE]
+df_dist_zoom <- df_dist[df_dist$distance_km <= 26, , drop = FALSE]
 
 ggplot(df_dist_zoom, aes(x = distance_km)) +
-  geom_histogram(binwidth = 1, fill = "lightgreen", color = "darkgreen", alpha = 0.7) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "darkblue", alpha = 0.7) +
   geom_vline(xintercept = median_dist,
              color = "red", linetype = "dashed", linewidth = 1.2) +
+  geom_vline(aes(xintercept = percentile_95),
+             color = "orange", linetype = "dashed", linewidth = 1.2) +
   annotate("text", x = median_dist + 1, y = Inf,
            label = paste("Median:", round(median_dist, 1), "km"),
            vjust = 1.5, hjust = 0, color = "red", size = 4, fontface = "bold") +
-  labs(title = "Data Centre Distances to Major Roads (Zoomed In)",
-       subtitle = "0-20 km Range - England",
+  annotate("text", x = 25, y = Inf,
+           label = paste("95th %ile:", round(percentile_95, 1), "km"),
+           vjust = 3, hjust = 1, color = "orange", size = 4, fontface = "bold") +
+  labs(title = "Data Centre Distances to Major Roads",
+       #subtitle = "0-20 km Range - England",
        x = "Distance to Nearest Road (km)",
        y = "Count") +
-  scale_x_continuous(breaks = seq(0, 20, 2)) +
+  scale_x_continuous(breaks = seq(0, 26, 2)) +
   theme_minimal() +
   theme(plot.title = element_text(size = 14, face = "bold"))
 

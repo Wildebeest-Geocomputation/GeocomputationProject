@@ -5,7 +5,7 @@ source('~/GeocomputationProject/utils/boundaries.R')
 source('~/GeocomputationProject/utils/fuzzy.R')
 
 # Load road data
-eng_roads=st_read("~/STA_MSc/Term_1/SAGc/Group assignment/Data/strategic_rds.shp")
+eng_roads <- st_read("./MaxEnt_data/strategic_rds.shp")
 
 # Make the empty raster
 grid_res <- 1000 # 1km
@@ -28,7 +28,7 @@ suitability_roads <- mask(suitability_roads, england_bng)
 #============================================================================
 
 #read data
-emp_5000 = st_read("~/STA_MSc/Term_1/SAGc/Group assignment/Data/emp_5000.gpkg")
+emp_5000 = st_read("./MaxEnt_data/emp_5000.gpkg")
 
 # Create raster grid (1km resolution to match other maps)
 grid_res <- 1000  # 1km

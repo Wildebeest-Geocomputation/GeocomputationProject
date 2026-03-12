@@ -3,7 +3,7 @@ library(sf)
 library(spatstat)
 
 # Read data and convert to sf object
-data <- read_csv("C:/Users/Natal/1.GeocomputationProject/variables/UK_Data_Centers.csv") %>%
+data <- read_csv("./Data/Example/UK_Data_Centers.csv") %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
   st_transform(27700)
 

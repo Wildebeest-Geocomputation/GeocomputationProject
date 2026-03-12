@@ -1,12 +1,7 @@
 .RData
 .Rhistory
-.Rproj.user
-Paper
-PData
-Plots
-ProjectData
-.Rproj.user
-Tutorial
-MaxEnt_data
 .DS_Store
 .RDataTmp
+.Rproj.user
+PData
+MaxEnt_data

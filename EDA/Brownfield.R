@@ -8,7 +8,7 @@ source('utils/boundaries.R')
 r_grid <- rast(ext(england_bng), resolution = 1000, crs = crs(england_bng))
 
 # brownfield <- read_csv("./PData/brownfield-site.csv")
-brownfield <- read_csv('./PData/Individual/brownfield-land.csv')
+brownfield <- read_csv('./MaxEnt_data/brownfield-site.csv')
 brownfield_england <- brownfield%>%
   filter(!is.na(point)) %>%
   st_as_sf(wkt = 'point', crs = 4326)%>%
